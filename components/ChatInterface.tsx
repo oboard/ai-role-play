@@ -13,7 +13,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Separator } from '@/components/ui/separator';
 import type { Character, Message } from '@/lib/types';
-import { chatWithCharacter } from '@/lib/ai-service';
+import { chatWithCharacterStream } from '@/lib/ai-service';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { useSpeechSynthesis } from '@/hooks/useSpeechSynthesis';
 
@@ -38,7 +38,7 @@ export default function ChatInterface({
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
+
   const { transcript, startListening, stopListening } = useSpeechRecognition();
   const { speak, cancel } = useSpeechSynthesis();
 
@@ -75,40 +75,73 @@ export default function ChatInterface({
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = inputText;
     setInputText('');
     setIsLoading(true);
 
-    try {
-      const response = await chatWithCharacter(inputText, character, messages);
-      
-      const characterMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: response,
-        sender: 'character',
-        timestamp: new Date(),
-      };
+    // 创建一个临时的角色消息用于流式更新
+    const characterMessageId = (Date.now() + 1).toString();
+    const initialCharacterMessage: Message = {
+      id: characterMessageId,
+      content: '',
+      sender: 'character',
+      timestamp: new Date(),
+    };
 
-      setMessages(prev => [...prev, characterMessage]);
-      
-      // 自动播放角色回复
-      if (!isSpeaking) {
-        setIsSpeaking(true);
-        await speak(response, {
-          rate: 0.9,
-          pitch: 1.0,
-          volume: 0.8,
-        });
-        setIsSpeaking(false);
-      }
+    setMessages(prev => [...prev, initialCharacterMessage]);
+
+    try {
+      let fullResponse = '';
+
+      await chatWithCharacterStream(
+        currentInput,
+        character,
+        messages,
+        // onChunk: 实时更新消息内容
+        (chunk: string) => {
+          fullResponse += chunk;
+          setMessages(prev =>
+            prev.map(msg =>
+              msg.id === characterMessageId
+                ? { ...msg, content: fullResponse }
+                : msg
+            )
+          );
+        },
+        // onComplete: 完成后播放语音
+        async (finalContent: string) => {
+          // 自动播放角色回复
+          if (!isSpeaking) {
+            setIsSpeaking(true);
+            await speak(finalContent, {
+              rate: 0.9,
+              pitch: 1.0,
+              volume: 0.8,
+            });
+            setIsSpeaking(false);
+          }
+        },
+        // onError: 错误处理
+        (error: Error) => {
+          console.error('发送消息失败:', error);
+          setMessages(prev =>
+            prev.map(msg =>
+              msg.id === characterMessageId
+                ? { ...msg, content: error.message }
+                : msg
+            )
+          );
+        }
+      );
     } catch (error) {
       console.error('发送消息失败:', error);
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: '抱歉，我现在无法回应。请稍后再试。',
-        sender: 'character',
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages(prev =>
+        prev.map(msg =>
+          msg.id === characterMessageId
+            ? { ...msg, content: '抱歉，我现在无法回应。请稍后再试。' }
+            : msg
+        )
+      );
     } finally {
       setIsLoading(false);
     }
@@ -152,16 +185,16 @@ export default function ChatInterface({
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={onBack}
                 className="text-white hover:bg-white/10"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 返回
               </Button>
-              
+
               <div className="flex items-center space-x-3">
                 <Avatar className="w-12 h-12 border-2 border-purple-300">
                   <AvatarImage
@@ -253,7 +286,7 @@ export default function ChatInterface({
                         <AlertDialogCancel className="bg-white/10 border-white/20 text-white hover:bg-white/20">
                           取消
                         </AlertDialogCancel>
-                        <AlertDialogAction 
+                        <AlertDialogAction
                           onClick={clearMessages}
                           className="bg-red-500 hover:bg-red-600 text-white"
                         >
@@ -266,7 +299,7 @@ export default function ChatInterface({
               </DropdownMenu>
             </div>
           </div>
-          
+
           <p className="text-sm text-gray-300 mt-2">{character.description}</p>
         </CardHeader>
       </Card>
@@ -300,13 +333,12 @@ export default function ChatInterface({
                         </AvatarFallback>
                       </Avatar>
                     )}
-                    
+
                     <div
-                      className={`relative p-3 rounded-2xl ${
-                        message.sender === 'user'
-                          ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white'
-                          : 'bg-white/10 text-white border border-white/20'
-                      }`}
+                      className={`relative p-3 rounded-2xl ${message.sender === 'user'
+                        ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white'
+                        : 'bg-white/10 text-white border border-white/20'
+                        }`}
                     >
                       <p className="text-sm leading-relaxed">{message.content}</p>
                       <div className="flex items-center justify-between mt-1">
@@ -373,7 +405,7 @@ export default function ChatInterface({
               <Send className="w-4 h-4" />
             </Button>
           </div>
-          
+
           {isListening && (
             <div className="mt-3 flex items-center justify-center space-x-2 text-sm text-gray-300">
               <div className="flex space-x-1">

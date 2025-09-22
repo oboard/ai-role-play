@@ -10,12 +10,13 @@ export function useSpeechRecognition() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      // @ts-ignore
       const SpeechRecognition = window.webkitSpeechRecognition || (window as any).SpeechRecognition;
-      
+
       if (SpeechRecognition) {
         setIsSupported(true);
         recognition.current = new SpeechRecognition();
-        
+
         recognition.current.continuous = false;
         recognition.current.interimResults = true;
         recognition.current.lang = 'zh-CN';
@@ -28,7 +29,7 @@ export function useSpeechRecognition() {
               finalTranscript += result[0].transcript;
             }
           }
-          
+
           if (finalTranscript) {
             setTranscript(finalTranscript);
           }

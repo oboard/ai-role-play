@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import type { Character, Message } from '@/lib/types';
 
 // 强制动态渲染，因为我们需要处理请求体
@@ -8,6 +8,17 @@ const API_URL = process.env.OPENAI_API_URL || 'https://openai.qiniu.com/v1/chat/
 const API_KEY = process.env.OPENAI_API_KEY || 'your-api-key-here';
 const API_MODEL = process.env.OPENAI_API_MODEL || 'gpt-3.5-turbo';
 
+// 返回角色特色的错误回复
+const fallbackResponses: Record<string, string> = {
+  'harry-potter': '抱歉，我的魔法似乎出了点问题，请稍后再试。',
+  'socrates': '我的思考被打断了，让我们稍后再继续这场对话。',
+  'einstein': '看起来时空连续体出现了扭曲，请给我一点时间。',
+  'sherlock-holmes': '线索暂时中断了，华生，我们稍后再继续推理。',
+  'leonardo-da-vinci': '我的思维机器需要一点维修时间。',
+  'confucius': '子曰：知之为知之，不知为不知。现在我需要思考一下。',
+  'elizabeth-bennet': '我的思绪有些混乱，请允许我整理一下。',
+  'gandalf': '黑暗力量在干扰我们的交流，请稍等片刻。'
+};
 interface ChatRequest {
   userMessage: string;
   character: Character;
@@ -15,8 +26,15 @@ interface ChatRequest {
 }
 
 export async function POST(request: NextRequest) {
+  let character: Character;
+  let userMessage: string;
+  let conversationHistory: Message[];
+
   try {
-    const { userMessage, character, conversationHistory }: ChatRequest = await request.json();
+    const requestData: ChatRequest = await request.json();
+    userMessage = requestData.userMessage;
+    character = requestData.character;
+    conversationHistory = requestData.conversationHistory;
 
     // 构建角色提示词
     const systemPrompt = `你现在要扮演${character.name}这个角色。
@@ -64,6 +82,7 @@ export async function POST(request: NextRequest) {
         top_p: 0.9,
         frequency_penalty: 0.1,
         presence_penalty: 0.1,
+        stream: true, // 启用流式响应
       }),
     });
 
@@ -71,36 +90,92 @@ export async function POST(request: NextRequest) {
       throw new Error(`API请求失败: ${response.status}`);
     }
 
-    const data = await response.json();
+    // 创建流式响应
+    const stream = new ReadableStream({
+      async start(controller) {
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
 
-    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      throw new Error('API返回数据格式错误');
-    }
+        if (!reader) {
+          controller.error(new Error('无法获取响应流'));
+          return;
+        }
 
-    return NextResponse.json({ 
-      content: data.choices[0].message.content.trim() 
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+
+            if (done) {
+              controller.close();
+              break;
+            }
+
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                const data = line.slice(6);
+
+                if (data === '[DONE]') {
+                  controller.close();
+                  return;
+                }
+
+                try {
+                  const parsed = JSON.parse(data);
+                  const content = parsed.choices?.[0]?.delta?.content;
+
+                  if (content) {
+                    // 发送Server-Sent Events格式的数据
+                    controller.enqueue(
+                      new TextEncoder().encode(`data: ${JSON.stringify({ content })}\n\n`)
+                    );
+                  }
+                } catch (e) {
+                  // 忽略解析错误，继续处理下一行
+                  continue;
+                }
+              }
+            }
+          }
+        } catch (error) {
+          controller.error(error);
+        }
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+      },
     });
 
   } catch (error) {
     console.error('AI服务调用失败:', error);
 
-    // 返回角色特色的错误回复
-    const fallbackResponses: Record<string, string> = {
-      'harry-potter': '抱歉，我的魔法似乎出了点问题，请稍后再试。',
-      'socrates': '我的思考被打断了，让我们稍后再继续这场对话。',
-      'einstein': '看起来时空连续体出现了扭曲，请给我一点时间。',
-      'sherlock-holmes': '线索暂时中断了，华生，我们稍后再继续推理。',
-      'leonardo-da-vinci': '我的思维机器需要一点维修时间。',
-      'confucius': '子曰：知之为知之，不知为不知。现在我需要思考一下。',
-      'elizabeth-bennet': '我的思绪有些混乱，请允许我整理一下。',
-      'gandalf': '黑暗力量在干扰我们的交流，请稍等片刻。'
-    };
 
     const fallbackMessage = '抱歉，我现在无法回应，请稍后再试。';
 
-    return NextResponse.json(
-      { content: fallbackMessage },
-      { status: 500 }
-    );
+    // 返回流式格式的错误响应，保持一致性
+    const errorStream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(
+          new TextEncoder().encode(`data: ${JSON.stringify({ content: fallbackMessage })}\n\n`)
+        );
+        controller.close();
+      },
+    });
+
+    return new Response(errorStream, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+      },
+      status: 200, // 保持200状态码，错误信息在流中传递
+    });
   }
 }

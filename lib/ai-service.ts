@@ -63,7 +63,7 @@ export async function chatWithCharacter(
     }
 
     const data = await response.json();
-    
+
     if (!data.choices || !data.choices[0] || !data.choices[0].message) {
       throw new Error('API返回数据格式错误');
     }
@@ -71,9 +71,9 @@ export async function chatWithCharacter(
     return data.choices[0].message.content.trim();
   } catch (error) {
     console.error('AI服务调用失败:', error);
-    
+
     // 返回角色特色的错误回复
-    const fallbackResponses = {
+    const fallbackResponses: Record<Character['id'], string> = {
       'harry-potter': '抱歉，我的魔法似乎出了点问题，请稍后再试。',
       'socrates': '我的思考被打断了，让我们稍后再继续这场对话。',
       'einstein': '看起来时空连续体出现了扭曲，请给我一点时间。',

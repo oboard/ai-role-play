@@ -9,9 +9,11 @@ import GameIntro from './GameIntro';
 import LanguageSwitcher from './LanguageSwitcher';
 import { GameState, Character, Evidence } from '@/types/game';
 import { useGameData } from '@/hooks/useGameData';
+import { useTranslation } from '@/lib/i18n';
 
 export default function GameContainer() {
   const { initialGameState } = useGameData();
+  const { t } = useTranslation();
   const [gameState, setGameState] = useState<GameState>(initialGameState);
   const [timeRemaining, setTimeRemaining] = useState(600); // 10 minutes in seconds
   const [gameStarted, setGameStarted] = useState(false);
@@ -77,7 +79,7 @@ export default function GameContainer() {
       {/* Timer Header */}
       <div className="bg-slate-800 border-b border-slate-700 px-6 py-3">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-amber-400">Prison: Defense of Freedom</h1>
+          <h1 className="text-2xl font-bold text-amber-400">{t('gameTitle')}</h1>
           <div className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${timeRemaining < 120 ? 'bg-red-900 text-red-200' : 'bg-slate-700 text-slate-200'
             }`}>
             <Clock size={20} />

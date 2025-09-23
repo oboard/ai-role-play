@@ -33,6 +33,7 @@ import {
 } from '@/components/ai-elements/actions';
 import { Fragment, useState } from 'react';
 import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
 import { Response } from '@/components/ai-elements/response';
 import { CopyIcon, GlobeIcon, RefreshCcwIcon } from 'lucide-react';
 import {
@@ -53,7 +54,11 @@ const ChatInterface = (props: {
   selectedCharacter: Character | null;
 }) => {
   const [input, setInput] = useState('');
-  const { messages, sendMessage, status, regenerate } = useChat();
+  const { messages, sendMessage, status, regenerate } = useChat({
+    transport: new DefaultChatTransport({
+      api: '/api/chat'
+    })
+  });
 
   const handleSubmit = (message: PromptInputMessage) => {
     const hasText = Boolean(message.text);
@@ -68,6 +73,11 @@ const ChatInterface = (props: {
         text: message.text || 'Sent with attachments',
         files: message.files
       },
+      {
+          body: {
+            character: props.selectedCharacter
+          }
+        }
     );
     setInput('');
   };

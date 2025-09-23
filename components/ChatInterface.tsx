@@ -35,7 +35,7 @@ import { Fragment, useState } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { Response } from '@/components/ai-elements/response';
-import { CopyIcon, GlobeIcon, RefreshCcwIcon } from 'lucide-react';
+import { CopyIcon, GlobeIcon, MicIcon, RefreshCcwIcon } from 'lucide-react';
 import {
   Source,
   Sources,
@@ -54,6 +54,7 @@ const ChatInterface = (props: {
   selectedCharacter: Character | null;
 }) => {
   const [input, setInput] = useState('');
+  const [useMicrophone, setUseMicrophone] = useState<boolean>(false);
   const { messages, sendMessage, status, regenerate } = useChat({
     transport: new DefaultChatTransport({
       api: '/api/chat'
@@ -74,10 +75,10 @@ const ChatInterface = (props: {
         files: message.files
       },
       {
-          body: {
-            character: props.selectedCharacter
-          }
+        body: {
+          character: props.selectedCharacter
         }
+      }
     );
     setInput('');
   };
@@ -147,7 +148,7 @@ const ChatInterface = (props: {
                           key={`${message.id}-${i}`}
                           className="w-full"
                           isStreaming={status === 'streaming' && i === message.parts.length - 1 && message.id === messages.at(-1)?.id}
-                        >                                                                      
+                        >
                           <ReasoningTrigger />
                           <ReasoningContent>{part.text}</ReasoningContent>
                         </Reasoning>
@@ -175,6 +176,13 @@ const ChatInterface = (props: {
           </PromptInputBody>
           <PromptInputToolbar>
             <PromptInputTools>
+              <PromptInputButton
+                onClick={() => setUseMicrophone(!useMicrophone)}
+                variant={useMicrophone ? 'default' : 'ghost'}
+              >
+                <MicIcon size={16} />
+                <span className="sr-only">Microphone</span>
+              </PromptInputButton>
             </PromptInputTools>
             <PromptInputSubmit disabled={!input && !status} status={status} />
           </PromptInputToolbar>

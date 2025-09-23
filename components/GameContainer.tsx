@@ -10,6 +10,7 @@ import LanguageSwitcher from './LanguageSwitcher';
 import { GameState, Character, Evidence } from '@/types/game';
 import { useGameData } from '@/hooks/useGameData';
 import { useTranslation } from '@/lib/i18n';
+import { chatStorage } from '@/lib/chatStorage';
 
 export default function GameContainer() {
   const { initialGameState } = useGameData();
@@ -50,6 +51,8 @@ export default function GameContainer() {
   };
 
   const handleStartGame = () => {
+    // 开始新游戏时清空所有聊天记录
+    chatStorage.clearAllMessages();
     setGameStarted(true);
   };
 

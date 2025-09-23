@@ -8,20 +8,11 @@ import {
 import { Message, MessageContent } from '@/components/ai-elements/message';
 import {
   PromptInput,
-  PromptInputActionAddAttachments,
-  PromptInputActionMenu,
-  PromptInputActionMenuContent,
-  PromptInputActionMenuTrigger,
   PromptInputAttachment,
   PromptInputAttachments,
   PromptInputBody,
   PromptInputButton,
   type PromptInputMessage,
-  PromptInputModelSelect,
-  PromptInputModelSelectContent,
-  PromptInputModelSelectItem,
-  PromptInputModelSelectTrigger,
-  PromptInputModelSelectValue,
   PromptInputSubmit,
   PromptInputTextarea,
   PromptInputToolbar,
@@ -35,7 +26,8 @@ import { Fragment, useState, useRef, useEffect } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { Response } from '@/components/ai-elements/response';
-import { CopyIcon, GlobeIcon, MicIcon, RefreshCcwIcon } from 'lucide-react';
+import { CopyIcon, MicIcon, RefreshCcwIcon } from 'lucide-react';
+import { chatStorage } from '@/lib/chatStorage';
 import {
   Source,
   Sources,
@@ -56,7 +48,12 @@ const ChatInterface = (props: {
   const [input, setInput] = useState('');
   const [useMicrophone, setUseMicrophone] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // 从localStorage加载初始消息
+  const initialMessages = chatStorage.loadMessages(props.character.id);
+  
   const { messages, sendMessage, status, regenerate } = useChat({
+    messages: initialMessages, // 设置初始消息
     transport: new DefaultChatTransport({
       api: '/api/chat'
     })
@@ -66,6 +63,13 @@ const ChatInterface = (props: {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // 持久化消息 - 每当消息变化时自动保存
+  useEffect(() => {
+    if (messages.length > 0) {
+      chatStorage.saveMessages(props.character.id, messages);
+    }
+  }, [messages, props.character.id]);
 
   const handleSubmit = (message: PromptInputMessage) => {
     const hasText = Boolean(message.text);

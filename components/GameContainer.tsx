@@ -17,6 +17,7 @@ export default function GameContainer() {
   const [gameState, setGameState] = useState<GameState>(initialGameState);
   const [timeRemaining, setTimeRemaining] = useState(600); // 10 minutes in seconds
   const [gameStarted, setGameStarted] = useState(false);
+  const [activeCharacters, setActiveCharacters] = useState<Set<string>>(new Set());
 
   // Update game state when language changes (only update scene and characters, preserve user progress)
   useEffect(() => {
@@ -52,11 +53,16 @@ export default function GameContainer() {
     setGameStarted(true);
   };
 
-  const handleCharacterSelect = (character: Character) => {
-    setGameState(prev => ({
-      ...prev,
-      selectedCharacter: character
-    }));
+  const handleToggleCharacterChat = (characterId: string) => {
+    setActiveCharacters(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(characterId)) {
+        newSet.delete(characterId);
+      } else {
+        newSet.add(characterId);
+      }
+      return newSet;
+    });
   };
 
   const handleAddEvidence = (evidence: Evidence) => {
@@ -95,16 +101,40 @@ export default function GameContainer() {
         <div className="col-span-3">
           <CharacterPanel
             characters={gameState.currentScene.characters}
-            selectedCharacter={gameState.selectedCharacter}
-            onCharacterSelect={handleCharacterSelect}
+            activeCharacters={activeCharacters}
+            onToggleCharacterChat={handleToggleCharacterChat}
           />
         </div>
 
         {/* Chat Interface - Center */}
-        <div className="col-span-6">
-          <ChatInterface
-            selectedCharacter={gameState.selectedCharacter}
-          />
+        <div className="col-span-6 space-y-4">
+          {Array.from(activeCharacters).map(characterId => {
+            const character = gameState.currentScene.characters.find(c => c.id === characterId);
+            return character ? (
+              <div key={characterId} className="bg-slate-800 rounded-lg border border-slate-600">
+                <div className="bg-slate-700 px-4 py-2 border-b border-slate-600 flex items-center justify-between">
+                  <span className="text-amber-400 font-semibold">{character.name}</span>
+                  <button 
+                    onClick={() => handleToggleCharacterChat(characterId)}
+                    className="text-slate-400 hover:text-white"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="h-96">
+                  <ChatInterface character={character} />
+                </div>
+              </div>
+            ) : null;
+          })}
+          {activeCharacters.size === 0 && (
+            <div className="h-full flex items-center justify-center text-slate-400">
+              <div className="text-center">
+                <p className="text-lg mb-2">选择角色开始对话</p>
+                <p className="text-sm">点击左侧角色面板中的角色来开始聊天</p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Evidence Notebook - Right */}

@@ -31,7 +31,7 @@ import {
   Action,
   Actions
 } from '@/components/ai-elements/actions';
-import { Fragment, useState } from 'react';
+import { Fragment, useState, useRef, useEffect } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { Response } from '@/components/ai-elements/response';
@@ -51,15 +51,21 @@ import { Loader } from '@/components/ai-elements/loader';
 import { Character } from '@/types/game';
 
 const ChatInterface = (props: {
-  selectedCharacter: Character | null;
+  character: Character;
 }) => {
   const [input, setInput] = useState('');
   const [useMicrophone, setUseMicrophone] = useState<boolean>(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const { messages, sendMessage, status, regenerate } = useChat({
     transport: new DefaultChatTransport({
       api: '/api/chat'
     })
   });
+
+  // 自动滚动到最新消息
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const handleSubmit = (message: PromptInputMessage) => {
     const hasText = Boolean(message.text);
@@ -76,7 +82,7 @@ const ChatInterface = (props: {
       },
       {
         body: {
-          character: props.selectedCharacter
+          character: props.character
         }
       }
     );
@@ -160,6 +166,7 @@ const ChatInterface = (props: {
               </div>
             ))}
             {status === 'submitted' && <Loader />}
+            <div ref={messagesEndRef} />
           </ConversationContent>
           <ConversationScrollButton />
         </Conversation>

@@ -11,6 +11,7 @@ import { GameState, Character, Evidence } from '@/types/game';
 import { useGameData } from '@/hooks/useGameData';
 import { useTranslation } from '@/lib/i18n';
 import { chatStorage } from '@/lib/chatStorage';
+import TtsList from '@/components/TtsList';
 
 export default function GameContainer() {
   const { initialGameState } = useGameData();
@@ -117,6 +118,7 @@ export default function GameContainer() {
               <div key={characterId} className="bg-slate-800 rounded-lg border border-slate-600">
                 <div className="bg-slate-700 px-4 py-2 border-b border-slate-600 flex items-center justify-between">
                   <span className="text-amber-400 font-semibold">{character.name}</span>
+                  <TtsList />
                   <button 
                     onClick={() => handleToggleCharacterChat(characterId)}
                     className="text-slate-400 hover:text-white"
@@ -144,6 +146,7 @@ export default function GameContainer() {
         <div className="col-span-3">
           <EvidenceNotebook evidence={gameState.evidenceList} />
         </div>
+
       </div>
     </div>
   );

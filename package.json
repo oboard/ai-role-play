@@ -75,9 +75,11 @@
     "typescript": "5.2.2",
     "use-stick-to-bottom": "^1.1.1",
     "vaul": "^0.9.9",
+    "ws": "^8.18.3",
     "zod": "^4.1.11"
   },
   "devDependencies": {
-    "@types/react-syntax-highlighter": "^15.5.13"
+    "@types/react-syntax-highlighter": "^15.5.13",
+    "@types/ws": "^8.18.1"
   }
 }

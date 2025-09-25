@@ -41,6 +41,7 @@ import {
 } from '@/components/ai-elements/reasoning';
 import { Loader } from '@/components/ai-elements/loader';
 import { Character } from '@/types/game';
+import { ttsService } from '@/lib/ttsService';
 
 const ChatInterface = (props: {
   character: Character;
@@ -48,6 +49,8 @@ const ChatInterface = (props: {
   const [input, setInput] = useState('');
   const [useMicrophone, setUseMicrophone] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const lastAssistantMessageRef = useRef<string>('');
+  const lastMessageCountRef = useRef<number>(0);
   
   // 从localStorage加载初始消息
   const initialMessages = chatStorage.loadMessages(props.character.id);
@@ -70,6 +73,39 @@ const ChatInterface = (props: {
       chatStorage.saveMessages(props.character.id, messages);
     }
   }, [messages, props.character.id]);
+
+  // 监听流式文本变化
+  useEffect(() => {
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      
+      // 检查是否是新消息
+      if (messages.length > lastMessageCountRef.current) {
+        lastMessageCountRef.current = messages.length;
+        lastAssistantMessageRef.current = '';
+        ttsService.reset(); // 重置 TTS 服务状态
+      }
+      
+      if (lastMessage.role === 'assistant' && status === 'streaming') {
+        // 获取最新的文本内容
+        const currentText = lastMessage.parts
+          .filter(part => part.type === 'text')
+          .map(part => part.text)
+          .join('');
+        
+        // 只收集文本，不立即处理
+        if (currentText.length > lastAssistantMessageRef.current.length) {
+          const newText = currentText.slice(lastAssistantMessageRef.current.length);
+          ttsService.addText(newText);
+          lastAssistantMessageRef.current = currentText;
+        }
+      } else if (status !== 'streaming' && lastMessage.role === 'assistant') {
+        // 流式结束，处理完整的文本
+        ttsService.processCompleteText();
+        lastAssistantMessageRef.current = '';
+      }
+    }
+  }, [messages, status]);
 
   const handleSubmit = (message: PromptInputMessage) => {
     const hasText = Boolean(message.text);

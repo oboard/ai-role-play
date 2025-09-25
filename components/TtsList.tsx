@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
+import { ttsService } from '@/lib/ttsService';
 
 interface VoiceItem {
   voice_name: string;
@@ -45,17 +46,20 @@ export default function TtsList({
       const response = await fetch('/api/voice/list');
       const result: VoiceListResponse = await response.json();
       
-      
       if (result.success) {
         setVoiceList(result.data);
+        // 设置默认音色
+        if (result.data.length > 0 && !internalSelectedVoice) {
+          const defaultVoice = result.data[0];
+          setInternalSelectedVoice(defaultVoice);
+          ttsService.setVoice(defaultVoice.voice_type);
+        }
       } else {
         setError(result.error || 'Failed to fetch voice list');
-        console.error('Error fetching voice list:', result.error);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       setError(errorMessage);
-      console.error('Error fetching voice list:', err);
     } finally {
       setLoading(false);
     }
@@ -69,6 +73,7 @@ export default function TtsList({
   useEffect(() => {
     if (selectedVoice) {
       setInternalSelectedVoice(selectedVoice);
+      ttsService.setVoice(selectedVoice.voice_type);
     }
   }, [selectedVoice]);
 
@@ -112,6 +117,8 @@ export default function TtsList({
     const selectedVoice = voiceList.find(voice => voice.voice_type === voiceType);
     if (selectedVoice) {
       setInternalSelectedVoice(selectedVoice);
+      // 更新 TTS 服务的音色
+      ttsService.setVoice(selectedVoice.voice_type);
       if (onVoiceSelect) {
         onVoiceSelect(selectedVoice);
       }
@@ -195,7 +202,6 @@ export default function TtsList({
           ))}
         </SelectContent>
       </Select>
-      
     </div>
   );
 }

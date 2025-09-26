@@ -19,9 +19,9 @@ export default function RolePlayApp() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-slate-900">
+    <div className="min-h-screen flex flex-col bg-slate-900">
       {/* Header */}
-      <div className="bg-slate-800 border-b border-slate-700 px-6 py-3">
+      <div className="sticky top-0 left-0 right-0 bg-slate-800 border-b border-slate-700 px-6 py-3">
         <div className="flex items-center justify-between">
           {selectedCharacter ? (
             <div className="flex items-center space-x-4">

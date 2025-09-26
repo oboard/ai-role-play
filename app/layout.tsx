@@ -6,8 +6,8 @@ import { I18nProvider } from '@/lib/i18n';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Prison: Defense of Freedom',
-  description: 'An AI-powered detective game where you must prove your innocence',
+  title: 'AI Role Play',
+  description: 'An AI-powered role play game where you can create and play characters with different roles and backgrounds.',
 };
 
 export default function RootLayout({

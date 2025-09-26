@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await response.json();
-    
+
     return NextResponse.json({
       success: true,
       data: result
@@ -77,11 +77,11 @@ class AsrService {
       if (this.permissionGranted && this.mediaRecorder) {
         return;
       }
-      
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       this.mediaRecorder = new MediaRecorder(stream);
       this.permissionGranted = true;
-      
+
       this.mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           this.audioChunks.push(event.data);
@@ -146,7 +146,7 @@ class AsrService {
     }
 
     const audioBlob = new Blob(this.audioChunks, { type: 'audio/wav' });
-    
+
     try {
       // 如果没有 token，先获取
       if (!this.token) {
@@ -155,7 +155,7 @@ class AsrService {
 
       // 转换为 base64
       const audioBase64 = await this.blobToBase64(audioBlob);
-      
+
       // 调用第三方 ASR API
       const response = await fetch('https://cloudsearchapi.ulearning.cn/asr', {
         method: 'POST',
@@ -171,7 +171,7 @@ class AsrService {
       });
 
       const result = await response.json();
-      
+
       // 处理ASR API响应格式: { code: 1, message: "成功", result: { text: "...", wordInfoDTOList: [...] } }
       if (result && result.code === 1 && result.message === "成功") {
         // API调用成功

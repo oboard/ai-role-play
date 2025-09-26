@@ -11,7 +11,7 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* Header */}
-      <div className="sticky top-0 left-0 right-0 bg-card border-b border-border px-6 py-3">
+      <div className="sticky z-10 top-0 left-0 right-0 bg-card border-b border-border px-6 py-3">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-foreground">{t('appTitle')}</h1>
           <div className="flex items-center gap-2">

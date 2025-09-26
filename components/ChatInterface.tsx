@@ -43,6 +43,7 @@ import { Loader } from '@/components/ai-elements/loader';
 import { Character } from '@/types/game';
 import { ttsService } from '@/lib/ttsService';
 import VoiceInput from './VoiceInput';
+import TtsList from './TtsList';
 
 const ChatInterface = (props: {
   character: Character;
@@ -138,6 +139,13 @@ const ChatInterface = (props: {
   return (
     <div className="max-w-4xl mx-auto p-6 relative size-full h-full">
       <div className="flex flex-col h-full">
+        {/* TTS 控制面板 */}
+        <div className="mb-4 p-3 bg-slate-800 rounded-lg border border-slate-700">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-slate-300">语音设置</span>
+            <TtsList className="w-64" />
+          </div>
+        </div>
         <Conversation className="h-full">
           <ConversationContent>
             {messages.map((message) => (

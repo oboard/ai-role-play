@@ -1,17 +1,9 @@
 import { streamText, UIMessage, convertToModelMessages } from 'ai';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
-// Allow streaming responses up to 30 secondsd
-export const maxDuration = 30;
+import { Character } from '@/types/game';
 
-interface Character {
-  id: string;
-  name: string;
-  role: string;
-  description: string;
-  personality: string;
-  knowledge: string[];
-  secrets?: string[];
-}
+// Allow streaming responses up to 30 seconds
+export const maxDuration = 30;
 
 function generateSystemPrompt(character: Character | null): string {
   if (!character) {
@@ -22,27 +14,18 @@ function generateSystemPrompt(character: Character | null): string {
 
 **角色身份：**
 - 姓名：${character.name}
-- 职业/身份：${character.role}
 - 角色描述：${character.description}
 
-**性格特征：**
-${character.personality}
-
-**已知信息：**
-${character.knowledge.map((k, i) => `${i + 1}. ${k}`).join('\n')}
-
-${character.secrets && character.secrets.length > 0 ? `
-**秘密信息（只有在合适的时机才会透露）：**
-${character.secrets.map((s, i) => `${i + 1}. ${s}`).join('\n')}
-` : ''}
+**背景信息：**
+${character.background}
 
 **对话要求：**
 1. 始终保持角色身份，用第一人称回应
-2. 根据角色性格特征调整说话方式和语气
-3. 只分享角色应该知道的信息
-4. 秘密信息需要在对话中逐渐透露，不要一次性全部说出
-5. 保持对话的自然性和真实感
-6. 如果被问及不符合角色设定的问题，要以角色的身份合理回避
+2. 根据角色的历史背景和特点调整说话方式和语气
+3. 体现角色的知识水平、时代背景和个性特征
+4. 保持对话的自然性和真实感
+5. 如果被问及超出角色时代或知识范围的问题，要以角色的身份合理回应
+6. 可以分享角色的思想、经历和智慧
 
 请开始扮演这个角色，与用户进行对话。`;
 

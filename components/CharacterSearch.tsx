@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, User, Crown, BookOpen } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,7 @@ export default function CharacterSearch() {
   const { t, language } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'historical' | 'fictional'>('all');
+  const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
 
   // 从JSON文件中获取角色数据
   const getCharacterData = (id: string): Character => {
@@ -36,6 +37,25 @@ export default function CharacterSearch() {
   const PREDEFINED_CHARACTERS: Character[] = Object.keys(characterData.characters).map(id =>
     getCharacterData(id)
   ).filter(Boolean);
+
+  // 异步加载角色图片
+  useEffect(() => {
+    const loadImages = async () => {
+      const urls: Record<string, string> = {};
+      for (const character of PREDEFINED_CHARACTERS) {
+        try {
+          urls[character.id] = await generateCardImageUrl(character.name);
+        } catch (error) {
+          console.warn(`Failed to load image for ${character.name}:`, error);
+          // 使用默认图片或空字符串
+          urls[character.id] = '';
+        }
+      }
+      setImageUrls(urls);
+    };
+
+    loadImages();
+  }, []);
 
   const filteredCharacters = useMemo(() => {
     return PREDEFINED_CHARACTERS.filter(character => {
@@ -130,19 +150,26 @@ export default function CharacterSearch() {
           >
             {/* 角色头像 */}
             <div className="relative h-48 overflow-hidden">
-              <img
-                src={generateCardImageUrl(character.name)}
-                alt={character.name}
-                className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                onError={(e) => {
-                  // 如果图片加载失败，显示默认背景
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                  target.nextElementSibling?.classList.remove('hidden');
-                }}
-              />
-              {/* 默认背景 */}
-              <div className="hidden absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 items-center justify-center">
+              {imageUrls[character.id] ? (
+                <img
+                  src={imageUrls[character.id]}
+                  alt={character.name}
+                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                  onError={(e) => {
+                    // 如果图片加载失败，显示默认背景
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    target.nextElementSibling?.classList.remove('hidden');
+                  }}
+                />
+              ) : (
+                // 加载中或无图片时显示默认背景
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+                  {getCategoryIcon(character.category)}
+                </div>
+              )}
+              {/* 默认背景（错误时显示） */}
+              <div className="hidden absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
                 {getCategoryIcon(character.category)}
               </div>
               {/* 分类标签 */}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { Character } from '@/types/game';
 import ChatInterface from '@/components/ChatInterface';
@@ -17,6 +17,8 @@ export default function ChatPage() {
   const router = useRouter();
   const { language, t } = useTranslation();
   const characterId = params.characterId as string;
+  const [avatarUrl, setAvatarUrl] = useState<string>('');
+  const [backgroundUrl, setBackgroundUrl] = useState<string>('');
 
   // 从JSON文件中获取角色数据
   const getCharacterData = (id: string): Character | null => {
@@ -40,6 +42,25 @@ export default function ChatPage() {
   useEffect(() => {
     if (character?.voice) {
       ttsService.setVoice(character.voice.voice_type);
+    }
+  }, [character]);
+
+  // 异步加载图片URL
+  useEffect(() => {
+    if (character) {
+      const loadImages = async () => {
+        try {
+          const [avatar, background] = await Promise.all([
+            generateAvatarUrl(character.name),
+            generateBackgroundUrl(character.name)
+          ]);
+          setAvatarUrl(avatar);
+          setBackgroundUrl(background);
+        } catch (error) {
+          console.warn('Failed to load images:', error);
+        }
+      };
+      loadImages();
     }
   }, [character]);
 
@@ -67,7 +88,7 @@ export default function ChatPage() {
     <div
       className="h-screen flex flex-col bg-background relative"
       style={{
-        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url(${generateBackgroundUrl(character.name)})`,
+        backgroundImage: backgroundUrl ? `linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), url(${backgroundUrl})` : 'none',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundAttachment: 'fixed'
@@ -88,17 +109,26 @@ export default function ChatPage() {
             </button>
             {/* 角色头像 */}
             <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-border">
-              <img
-                src={generateAvatarUrl(character.name)}
-                alt={character.name}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  // 如果图片加载失败，显示默认头像
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                  target.nextElementSibling?.classList.remove('hidden');
-                }}
-              />
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt={character.name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // 如果图片加载失败，显示默认头像
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    target.nextElementSibling?.classList.remove('hidden');
+                  }}
+                />
+              ) : (
+                // 加载中显示默认头像
+                <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+                  <span className="text-foreground font-bold text-lg">
+                    {character.name.charAt(0)}
+                  </span>
+                </div>
+              )}
               <div className="hidden w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 items-center justify-center">
                 <span className="text-foreground font-bold text-lg">
                   {character.name.charAt(0)}

@@ -1,11 +1,7 @@
 'use client';
 
-import GameContainer from '@/components/GameContainer';
+import RolePlayApp from '@/components/RolePlayApp';
 
 export default function Home() {
-  return (
-    <div className="min-h-screen bg-slate-900 text-white">
-      <GameContainer />
-    </div>
-  );
+  return <RolePlayApp />;
 }

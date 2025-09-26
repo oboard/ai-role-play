@@ -42,6 +42,7 @@ import {
 import { Loader } from '@/components/ai-elements/loader';
 import { Character } from '@/types/game';
 import { ttsService } from '@/lib/ttsService';
+import VoiceInput from './VoiceInput';
 
 const ChatInterface = (props: {
   character: Character;
@@ -127,6 +128,11 @@ const ChatInterface = (props: {
       }
     );
     setInput('');
+  };
+
+  const handleVoiceText = (text: string) => {
+    // 将识别到的文本添加到输入框
+    setInput(text);
   };
 
   return (
@@ -231,6 +237,10 @@ const ChatInterface = (props: {
                 <span className="sr-only">Microphone</span>
               </PromptInputButton>
             </PromptInputTools>
+            <VoiceInput 
+              onTextRecognized={handleVoiceText}
+              className="mb-2"
+            />
             <PromptInputSubmit disabled={!input && !status} status={status} />
           </PromptInputToolbar>
         </PromptInput>

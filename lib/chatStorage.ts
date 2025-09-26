@@ -20,6 +20,11 @@ export interface ChatStorage {
 export const chatStorage: ChatStorage = {
   saveMessages: (characterId: string, messages: UIMessage[]) => {
     try {
+      // 服务端渲染时 localStorage 不存在
+      if (typeof window === 'undefined') {
+        return;
+      }
+      
       const key = `${CHAT_STORAGE_PREFIX}${characterId}`;
       localStorage.setItem(key, JSON.stringify(messages));
     } catch (error) {
@@ -30,6 +35,11 @@ export const chatStorage: ChatStorage = {
 
   loadMessages: (characterId: string): UIMessage[] => {
     try {
+      // 服务端渲染时 localStorage 不存在
+      if (typeof window === 'undefined') {
+        return [];
+      }
+      
       const key = `${CHAT_STORAGE_PREFIX}${characterId}`;
       const stored = localStorage.getItem(key);
       return stored ? JSON.parse(stored) : [];
@@ -42,6 +52,11 @@ export const chatStorage: ChatStorage = {
 
   clearMessages: (characterId: string) => {
     try {
+      // 服务端渲染时 localStorage 不存在
+      if (typeof window === 'undefined') {
+        return;
+      }
+      
       const key = `${CHAT_STORAGE_PREFIX}${characterId}`;
       localStorage.removeItem(key);
     } catch (error) {
@@ -51,6 +66,11 @@ export const chatStorage: ChatStorage = {
 
   clearAllMessages: () => {
     try {
+      // 服务端渲染时 localStorage 不存在
+      if (typeof window === 'undefined') {
+        return;
+      }
+      
       // 找到所有聊天相关的key并删除
       const keysToRemove: string[] = [];
       for (let i = 0; i < localStorage.length; i++) {

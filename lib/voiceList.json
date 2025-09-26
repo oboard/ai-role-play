@@ -1,0 +1,268 @@
+[
+    {
+        "voice_name": "甜美教学小源",
+        "voice_type": "qiniu_zh_female_tmjxxy",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_zh_female_tmjxxy.mp3",
+        "category": "传统音色",
+        "updatetime": 1747812605569
+    },
+    {
+        "voice_name": "校园清新学姐",
+        "voice_type": "qiniu_zh_female_xyqxxj",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_zh_female_xyqxxj.mp3",
+        "category": "传统音色",
+        "updatetime": 1747812605458
+    },
+    {
+        "voice_name": "邻家辅导学长",
+        "voice_type": "qiniu_zh_male_ljfdxz",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_zh_male_ljfdxz.mp3",
+        "category": "传统音色",
+        "updatetime": 1747812605458
+    },
+    {
+        "voice_name": "邻家辅导学姐",
+        "voice_type": "qiniu_zh_female_ljfdxx",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_zh_female_ljfdxx.mp3",
+        "category": "传统音色",
+        "updatetime": 1747812605458
+    },
+    {
+        "voice_name": "温婉学科讲师",
+        "voice_type": "qiniu_zh_female_wwxkjx",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_zh_female_wwxkjx.mp3",
+        "category": "传统音色",
+        "updatetime": 1747812605458
+    },
+    {
+        "voice_name": "率真校园向导",
+        "voice_type": "qiniu_zh_male_szxyxd",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_zh_male_szxyxd.mp3",
+        "category": "传统音色",
+        "updatetime": 1747812605458
+    },
+    {
+        "voice_name": "干练课堂思思",
+        "voice_type": "qiniu_zh_female_glktss",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_zh_female_glktss.mp3",
+        "category": "传统音色",
+        "updatetime": 1747812605458
+    },
+    {
+        "voice_name": "温和学科小哥",
+        "voice_type": "qiniu_zh_male_whxkxg",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_zh_male_whxkxg.mp3",
+        "category": "传统音色",
+        "updatetime": 1747812605458
+    },
+    {
+        "voice_name": "温暖沉稳学长",
+        "voice_type": "qiniu_zh_male_wncwxz",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_zh_male_wncwxz.mp3",
+        "category": "传统音色",
+        "updatetime": 1747812605458
+    },
+    {
+        "voice_name": "开朗教学督导",
+        "voice_type": "qiniu_zh_female_kljxdd",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_zh_female_kljxdd.mp3",
+        "category": "传统音色",
+        "updatetime": 1747812605458
+    },
+    {
+        "voice_name": "渊博学科男教师",
+        "voice_type": "qiniu_zh_male_ybxknjs",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_zh_male_ybxknjs.mp3",
+        "category": "传统音色",
+        "updatetime": 1747812605458
+    },
+    {
+        "voice_name": "火力少年凯凯",
+        "voice_type": "qiniu_zh_male_hlsnkk",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_zh_male_hlsnkk.mp3",
+        "category": "传统音色",
+        "updatetime": 1747812605458
+    },
+    {
+        "voice_name": "通用阳光讲师",
+        "voice_type": "qiniu_zh_male_tyygjs",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_zh_male_tyygjs.mp3",
+        "category": "传统音色",
+        "updatetime": 1747812605458
+    },
+    {
+        "voice_name": "知性教学女教师",
+        "voice_type": "qiniu_zh_female_zxjxnjs",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_zh_female_zxjxnjs.mp3",
+        "category": "传统音色",
+        "updatetime": 1747812605458
+    },
+    {
+        "voice_name": "澳洲英语女",
+        "voice_type": "qiniu_en_female_azyy",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_en_female_azyy.mp3",
+        "category": "双语音色",
+        "updatetime": 1747812605458
+    },
+    {
+        "voice_name": "日西双语女1",
+        "voice_type": "qiniu_multi_female_rxsyn1",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_multi_female_rxsyn1.mp3",
+        "category": "双语音色",
+        "updatetime": 1747812605458
+    },
+    {
+        "voice_name": "日西双语男2",
+        "voice_type": "qiniu_multi_male_rxsyn2",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_multi_male_rxsyn2.mp3",
+        "category": "双语音色",
+        "updatetime": 1747812605458
+    },
+    {
+        "voice_name": "英式英语男",
+        "voice_type": "qiniu_en_male_ysyyn",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_en_male_ysyyn.mp3",
+        "category": "双语音色",
+        "updatetime": 1747812605459
+    },
+    {
+        "voice_name": "英式英语女",
+        "voice_type": "qiniu_en_female_ysyyn",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_en_female_ysyyn.mp3",
+        "category": "双语音色",
+        "updatetime": 1747812605459
+    },
+    {
+        "voice_name": "美式英语女",
+        "voice_type": "qiniu_en_female_msyyn",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_en_female_msyyn.mp3",
+        "category": "双语音色",
+        "updatetime": 1747812605459
+    },
+    {
+        "voice_name": "美式英语男",
+        "voice_type": "qiniu_en_male_msyyn",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_en_male_msyyn.mp3",
+        "category": "双语音色",
+        "updatetime": 1747812605459
+    },
+    {
+        "voice_name": "澳洲英语男",
+        "voice_type": "qiniu_en_male_azyyn",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_en_male_azyyn.mp3",
+        "category": "双语音色",
+        "updatetime": 1747812605459
+    },
+    {
+        "voice_name": "日西双语男1",
+        "voice_type": "qiniu_multi_male_rxsyn1",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_multi_male_rxsyn1.mp3",
+        "category": "双语音色",
+        "updatetime": 1747812605459
+    },
+    {
+        "voice_name": "日西双语女2",
+        "voice_type": "qiniu_multi_female_rxsyn2",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_multi_female_rxsyn2.mp3",
+        "category": "双语音色",
+        "updatetime": 1747812605459
+    },
+    {
+        "voice_name": "慈祥教学顾问",
+        "voice_type": "qiniu_zh_female_cxjxgw",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_zh_female_cxjxgw.mp3",
+        "category": "特殊音色",
+        "updatetime": 1747812605460
+    },
+    {
+        "voice_name": "社区教育阿姨",
+        "voice_type": "qiniu_zh_female_sqjyay",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_zh_female_sqjyay.mp3",
+        "category": "特殊音色",
+        "updatetime": 1747812605460
+    },
+    {
+        "voice_name": "动漫樱桃丸子",
+        "voice_type": "qiniu_zh_female_dmytwz",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_zh_female_dmytwz.mp3",
+        "category": "特殊音色",
+        "updatetime": 1747812605460
+    },
+    {
+        "voice_name": "少儿故事配音",
+        "voice_type": "qiniu_zh_female_segsby",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_zh_female_segsby.mp3",
+        "category": "特殊音色",
+        "updatetime": 1747812605460
+    },
+    {
+        "voice_name": "轻松懒音绵宝",
+        "voice_type": "qiniu_zh_male_qslymb",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_zh_male_qslymb.mp3",
+        "category": "特殊音色",
+        "updatetime": 1747812605460
+    },
+    {
+        "voice_name": "活力率真萌仔",
+        "voice_type": "qiniu_zh_male_hllzmz",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_zh_male_hllzmz.mp3",
+        "category": "特殊音色",
+        "updatetime": 1747812605460
+    },
+    {
+        "voice_name": "温婉课件配音",
+        "voice_type": "qiniu_zh_female_wwkjby",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_zh_female_wwkjby.mp3",
+        "category": "特殊音色",
+        "updatetime": 1747812605460
+    },
+    {
+        "voice_name": "儿童故事熊二",
+        "voice_type": "qiniu_zh_male_etgsxe",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_zh_male_etgsxe.mp3",
+        "category": "特殊音色",
+        "updatetime": 1747812605460
+    },
+    {
+        "voice_name": "古装剧教学版",
+        "voice_type": "qiniu_zh_male_gzjjxb",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_zh_male_gzjjxb.mp3",
+        "category": "特殊音色",
+        "updatetime": 1747812605460
+    },
+    {
+        "voice_name": "磁性课件男声",
+        "voice_type": "qiniu_zh_male_cxkjns",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_zh_male_cxkjns.mp3",
+        "category": "特殊音色",
+        "updatetime": 1747812605460
+    },
+    {
+        "voice_name": "趣味知识传播",
+        "voice_type": "qiniu_zh_female_qwzscb",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_zh_female_qwzscb.mp3",
+        "category": "特殊音色",
+        "updatetime": 1747812605460
+    },
+    {
+        "voice_name": "名著角色猴哥",
+        "voice_type": "qiniu_zh_male_mzjsxg",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_zh_male_mzjsxg.mp3",
+        "category": "特殊音色",
+        "updatetime": 1747812605460
+    },
+    {
+        "voice_name": "英语启蒙佩奇",
+        "voice_type": "qiniu_zh_female_yyqmpq",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_zh_female_yyqmpq.mp3",
+        "category": "特殊音色",
+        "updatetime": 1747812605460
+    },
+    {
+        "voice_name": "天才少年示范",
+        "voice_type": "qiniu_zh_male_tcsnsf",
+        "url": "https://aitoken-public.qnaigc.com/ai-voice/qiniu_zh_male_tcsnsf.mp3",
+        "category": "特殊音色",
+        "updatetime": 1747812605460
+    }
+]

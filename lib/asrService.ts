@@ -56,16 +56,31 @@ class AsrService {
   private audioChunks: Blob[] = [];
   private onResultCallback: ((text: string) => void) | null = null;
   private token: string | null = null;
+  private isInitialized = false;
+  private permissionGranted = false;
 
   constructor() {
-    this.initializeMediaRecorder();
-    this.fetchToken();
+    // Only fetch token in browser environment, don't initialize microphone yet
+    if (typeof window !== 'undefined') {
+      this.fetchToken();
+    }
   }
 
   private async initializeMediaRecorder() {
     try {
+      // Check if we're in browser environment and APIs are available
+      if (typeof window === 'undefined' || !navigator.mediaDevices) {
+        return;
+      }
+
+      // Check if already initialized and permission granted
+      if (this.permissionGranted && this.mediaRecorder) {
+        return;
+      }
+      
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       this.mediaRecorder = new MediaRecorder(stream);
+      this.permissionGranted = true;
       
       this.mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
@@ -78,6 +93,8 @@ class AsrService {
       };
     } catch (error) {
       console.error('Failed to initialize media recorder:', error);
+      this.permissionGranted = false;
+      throw error; // Re-throw to let caller handle the error
     }
   }
 
@@ -100,7 +117,13 @@ class AsrService {
     this.onResultCallback = callback;
   }
 
-  startRecording() {
+  async startRecording() {
+    // Initialize microphone on first use
+    if (!this.isInitialized) {
+      await this.initializeMediaRecorder();
+      this.isInitialized = true;
+    }
+
     if (!this.mediaRecorder || this.mediaRecorder.state === 'recording') {
       return;
     }
@@ -118,7 +141,7 @@ class AsrService {
   }
 
   private async processAudio() {
-    if (this.audioChunks.length === 0) {
+    if (this.audioChunks.length === 0 || typeof window === 'undefined') {
       return;
     }
 
@@ -149,22 +172,28 @@ class AsrService {
 
       const result = await response.json();
       
-      // 处理不同的返回格式
-      if (result && result.text) {
-        // 有识别结果
-        const recognizedText = result.text;
-        if (this.onResultCallback) {
-          this.onResultCallback(recognizedText);
-        }
-      } else if (result && result.code === 1 && result.message === "成功") {
-        // 没有识别到文字，但没有错误
-        console.log('No speech detected');
-        if (this.onResultCallback) {
-          this.onResultCallback(''); // 返回空字符串表示没有识别到内容
+      // 处理ASR API响应格式: { code: 1, message: "成功", result: { text: "...", wordInfoDTOList: [...] } }
+      if (result && result.code === 1 && result.message === "成功") {
+        // API调用成功
+        if (result.result && result.result.text) {
+          // 有识别结果
+          const recognizedText = result.result.text;
+          if (this.onResultCallback) {
+            this.onResultCallback(recognizedText);
+          }
+        } else {
+          // 没有识别到文字，但API调用成功
+          console.log('No speech detected');
+          if (this.onResultCallback) {
+            this.onResultCallback(''); // 返回空字符串表示没有识别到内容
+          }
         }
       } else {
-        // 其他错误情况
-        console.error('ASR API returned unexpected result:', result);
+        // API调用失败或其他错误情况
+        console.error('ASR API returned error:', result);
+        if (this.onResultCallback) {
+          this.onResultCallback(''); // 错误时返回空字符串
+        }
       }
     } catch (error) {
       console.error('ASR processing error:', error);
@@ -190,4 +219,4 @@ class AsrService {
   }
 }
 
-export const asrService = new AsrService(); 
+export const asrService = new AsrService();

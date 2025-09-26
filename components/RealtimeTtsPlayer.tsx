@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Play, Pause, Volume2, Loader2, Gauge, Mic, Square } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 
 interface VoiceItem {
   voice_name: string;
@@ -20,6 +21,7 @@ interface RealtimeTtsPlayerProps {
 }
 
 export default function RealtimeTtsPlayer({ className = "" }: RealtimeTtsPlayerProps) {
+  const { t } = useTranslation();
   const [text, setText] = useState('你好，世界！这是一个实时文字转语音的示例。');
   const [voiceType, setVoiceType] = useState('');
   const [speedRatio, setSpeedRatio] = useState([1.0]);
@@ -29,7 +31,7 @@ export default function RealtimeTtsPlayer({ className = "" }: RealtimeTtsPlayerP
   const [voiceList, setVoiceList] = useState<VoiceItem[]>([]);
   const [voiceLoading, setVoiceLoading] = useState(false);
   const [progress, setProgress] = useState(0);
-  
+
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioBufferRef = useRef<AudioBuffer | null>(null);
   const sourceNodeRef = useRef<AudioBufferSourceNode | null>(null);
@@ -41,7 +43,7 @@ export default function RealtimeTtsPlayer({ className = "" }: RealtimeTtsPlayerP
     try {
       const response = await fetch('/api/voice/list');
       const result = await response.json();
-      
+
       if (result.success) {
         setVoiceList(result.data);
         if (result.data.length > 0) {
@@ -64,12 +66,12 @@ export default function RealtimeTtsPlayer({ className = "" }: RealtimeTtsPlayerP
 
   const handleRealtimeTts = async () => {
     if (!text.trim()) {
-      setError('请输入要转换的文字');
+      setError(t('pleaseEnterText'));
       return;
     }
 
     if (!voiceType) {
-      setError('请选择音色');
+      setError(t('pleaseSelectVoice'));
       return;
     }
 
@@ -111,13 +113,13 @@ export default function RealtimeTtsPlayer({ className = "" }: RealtimeTtsPlayerP
 
       while (true) {
         const { done, value } = await reader.read();
-        
+
         if (done) break;
-        
+
         chunks.push(value);
         chunksRef.current.push(value);
         totalLength += value.length;
-        
+
         // 更新进度（简单估算）
         setProgress(Math.min(95, (totalLength / 10000) * 100));
       }
@@ -133,16 +135,16 @@ export default function RealtimeTtsPlayer({ className = "" }: RealtimeTtsPlayerP
       // 解码音频数据
       const audioBuffer = await audioContextRef.current.decodeAudioData(audioData.buffer);
       audioBufferRef.current = audioBuffer;
-      
+
       setProgress(100);
       setIsStreaming(false);
       setIsPlaying(true);
-      
+
       // 自动播放
       playAudio();
 
     } catch (err) {
-      setError(`实时转换失败: ${err instanceof Error ? err.message : '未知错误'}`);
+      setError(`${t('realtimeConversionFailed')}: ${err instanceof Error ? err.message : t('unknownError')}`);
       console.error('Realtime TTS error:', err);
       setIsStreaming(false);
     }
@@ -160,7 +162,7 @@ export default function RealtimeTtsPlayer({ className = "" }: RealtimeTtsPlayerP
     const source = audioContextRef.current.createBufferSource();
     source.buffer = audioBufferRef.current;
     source.connect(audioContextRef.current.destination);
-    
+
     source.onended = () => {
       setIsPlaying(false);
     };
@@ -194,25 +196,25 @@ export default function RealtimeTtsPlayer({ className = "" }: RealtimeTtsPlayerP
 
   return (
     <div className={`space-y-4 p-4 bg-white rounded-lg border ${className}`}>
-      <h3 className="text-lg font-semibold text-gray-900">实时文字转语音</h3>
-      
+      <h3 className="text-lg font-semibold text-gray-900">{t('realtimeTtsTitle')}</h3>
+
       {/* 文字输入 */}
       <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700">输入文字</label>
+        <label className="text-sm font-medium text-gray-700">{t('inputText')}</label>
         <Textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="请输入要转换的文字..."
+          placeholder={t('inputTextPlaceholder')}
           className="min-h-[100px]"
         />
       </div>
 
       {/* 音色选择 */}
       <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700">选择音色</label>
+        <label className="text-sm font-medium text-gray-700">{t('selectVoice')}</label>
         <Select value={voiceType} onValueChange={setVoiceType} disabled={voiceLoading || isStreaming}>
           <SelectTrigger className="w-full">
-            <SelectValue placeholder={voiceLoading ? "加载中..." : "选择音色"} />
+            <SelectValue placeholder={voiceLoading ? t('loadingVoices') : t('selectVoicePlaceholder')} />
           </SelectTrigger>
           <SelectContent>
             {Object.entries(groupedVoices).map(([category, voices]) => (
@@ -238,7 +240,7 @@ export default function RealtimeTtsPlayer({ className = "" }: RealtimeTtsPlayerP
       <div className="space-y-2">
         <div className="flex items-center space-x-2">
           <Gauge className="h-4 w-4 text-gray-600" />
-          <label className="text-sm font-medium text-gray-700">语速调整</label>
+          <label className="text-sm font-medium text-gray-700">{t('speedAdjustment')}</label>
         </div>
         <div className="px-2">
           <Slider
@@ -263,10 +265,10 @@ export default function RealtimeTtsPlayer({ className = "" }: RealtimeTtsPlayerP
         <div className="space-y-2">
           <div className="flex items-center space-x-2">
             <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
-            <span className="text-sm text-gray-600">实时转换中...</span>
+            <span className="text-sm text-gray-600">{t('realtimeConverting')}</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
+            <div
               className="bg-blue-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
@@ -283,7 +285,7 @@ export default function RealtimeTtsPlayer({ className = "" }: RealtimeTtsPlayerP
             className="flex items-center space-x-2"
           >
             <Mic className="h-4 w-4" />
-            <span>开始实时转换</span>
+            <span>{t('startRealtimeConversion')}</span>
           </Button>
         ) : (
           <Button
@@ -292,7 +294,7 @@ export default function RealtimeTtsPlayer({ className = "" }: RealtimeTtsPlayerP
             className="flex items-center space-x-2"
           >
             <Square className="h-4 w-4" />
-            <span>停止转换</span>
+            <span>{t('stopConversion')}</span>
           </Button>
         )}
 
@@ -305,12 +307,12 @@ export default function RealtimeTtsPlayer({ className = "" }: RealtimeTtsPlayerP
             {isPlaying ? (
               <>
                 <Pause className="h-4 w-4" />
-                <span>暂停</span>
+                <span>{t('pause')}</span>
               </>
             ) : (
               <>
                 <Play className="h-4 w-4" />
-                <span>播放</span>
+                <span>{t('play')}</span>
               </>
             )}
           </Button>
@@ -321,9 +323,9 @@ export default function RealtimeTtsPlayer({ className = "" }: RealtimeTtsPlayerP
       {audioBufferRef.current && (
         <div className="p-3 bg-gray-50 rounded-lg">
           <div className="text-sm text-gray-600">
-            <p>音色: {voiceList.find(v => v.voice_type === voiceType)?.voice_name}</p>
-            <p>语速: {speedRatio[0].toFixed(1)}x</p>
-            <p>状态: {isPlaying ? '播放中' : '已就绪'}</p>
+            <p>{t('voice')}: {voiceList.find(v => v.voice_type === voiceType)?.voice_name}</p>
+            <p>{t('speed')}: {speedRatio[0].toFixed(1)}x</p>
+            <p>{t('status')}: {isPlaying ? t('playing') : t('ready')}</p>
           </div>
         </div>
       )}
@@ -336,4 +338,4 @@ export default function RealtimeTtsPlayer({ className = "" }: RealtimeTtsPlayerP
       )}
     </div>
   );
-} 
+}

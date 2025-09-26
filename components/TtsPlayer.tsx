@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Play, Pause, Volume2, Loader2, Gauge } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 
 interface VoiceItem {
   voice_name: string;
@@ -20,6 +21,7 @@ interface TtsPlayerProps {
 }
 
 export default function TtsPlayer({ className = "" }: TtsPlayerProps) {
+  const { t } = useTranslation();
   const [text, setText] = useState('你好，世界！这是一个文字转语音的示例。');
   const [voiceType, setVoiceType] = useState('');
   const [speedRatio, setSpeedRatio] = useState([1.0]); // 使用数组以兼容 Slider 组件
@@ -37,7 +39,7 @@ export default function TtsPlayer({ className = "" }: TtsPlayerProps) {
     try {
       const response = await fetch('/api/voice/list');
       const result = await response.json();
-      
+
       if (result.success) {
         setVoiceList(result.data);
         // 设置默认音色为第一个
@@ -61,12 +63,12 @@ export default function TtsPlayer({ className = "" }: TtsPlayerProps) {
 
   const handleTts = async () => {
     if (!text.trim()) {
-      setError('请输入要转换的文字');
+      setError(t('pleaseEnterText'));
       return;
     }
 
     if (!voiceType) {
-      setError('请选择音色');
+      setError(t('pleaseSelectVoice'));
       return;
     }
 
@@ -94,10 +96,10 @@ export default function TtsPlayer({ className = "" }: TtsPlayerProps) {
         setDuration(result.data.duration);
         setIsPlaying(true);
       } else {
-        setError(result.error || '文字转语音失败');
+        setError(result.error || t('ttsConversionFailed'));
       }
     } catch (err) {
-      setError('网络错误，请重试');
+      setError(t('networkError'));
       console.error('TTS error:', err);
     } finally {
       setIsLoading(false);
@@ -111,7 +113,7 @@ export default function TtsPlayer({ className = "" }: TtsPlayerProps) {
         setIsPlaying(true);
       }).catch((error) => {
         console.error('Audio play error:', error);
-        setError('音频播放失败');
+        setError(t('audioPlaybackFailed'));
       });
     }
   };
@@ -131,25 +133,25 @@ export default function TtsPlayer({ className = "" }: TtsPlayerProps) {
 
   return (
     <div className={`space-y-4 p-4 bg-white rounded-lg border ${className}`}>
-      <h3 className="text-lg font-semibold text-gray-900">文字转语音示例</h3>
-      
+      <h3 className="text-lg font-semibold text-gray-900">{t('ttsTitle')}</h3>
+
       {/* 文字输入 */}
       <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700">输入文字</label>
+        <label className="text-sm font-medium text-gray-700">{t('inputText')}</label>
         <Textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="请输入要转换的文字..."
+          placeholder={t('inputTextPlaceholder')}
           className="min-h-[100px]"
         />
       </div>
 
       {/* 音色选择 */}
       <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700">选择音色</label>
+        <label className="text-sm font-medium text-gray-700">{t('selectVoice')}</label>
         <Select value={voiceType} onValueChange={setVoiceType} disabled={voiceLoading}>
           <SelectTrigger className="w-full">
-            <SelectValue placeholder={voiceLoading ? "加载中..." : "选择音色"} />
+            <SelectValue placeholder={voiceLoading ? t('loadingVoices') : t('selectVoicePlaceholder')} />
           </SelectTrigger>
           <SelectContent>
             {Object.entries(groupedVoices).map(([category, voices]) => (
@@ -175,7 +177,7 @@ export default function TtsPlayer({ className = "" }: TtsPlayerProps) {
       <div className="space-y-2">
         <div className="flex items-center space-x-2">
           <Gauge className="h-4 w-4 text-gray-600" />
-          <label className="text-sm font-medium text-gray-700">语速调整</label>
+          <label className="text-sm font-medium text-gray-700">{t('speedAdjustment')}</label>
         </div>
         <div className="px-2">
           <Slider
@@ -204,12 +206,12 @@ export default function TtsPlayer({ className = "" }: TtsPlayerProps) {
           {isLoading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span>转换中...</span>
+              <span>{t('converting')}</span>
             </>
           ) : (
             <>
               <Volume2 className="h-4 w-4" />
-              <span>开始转换</span>
+              <span>{t('startConversion')}</span>
             </>
           )}
         </Button>
@@ -224,12 +226,12 @@ export default function TtsPlayer({ className = "" }: TtsPlayerProps) {
               {isPlaying ? (
                 <>
                   <Pause className="h-4 w-4" />
-                  <span>暂停</span>
+                  <span>{t('pause')}</span>
                 </>
               ) : (
                 <>
                   <Play className="h-4 w-4" />
-                  <span>播放</span>
+                  <span>{t('play')}</span>
                 </>
               )}
             </Button>
@@ -241,9 +243,9 @@ export default function TtsPlayer({ className = "" }: TtsPlayerProps) {
       {audioUrl && (
         <div className="p-3 bg-gray-50 rounded-lg">
           <div className="text-sm text-gray-600">
-            <p>音频时长: {Math.round(parseInt(duration) / 1000)} 秒</p>
-            <p>音色: {voiceList.find(v => v.voice_type === voiceType)?.voice_name}</p>
-            <p>语速: {speedRatio[0].toFixed(1)}x</p>
+            <p>{t('audioDuration')}: {Math.round(parseInt(duration) / 1000)} {t('seconds')}</p>
+            <p>{t('voice')}: {voiceList.find(v => v.voice_type === voiceType)?.voice_name}</p>
+            <p>{t('speed')}: {speedRatio[0].toFixed(1)}x</p>
           </div>
           <audio
             src={audioUrl}

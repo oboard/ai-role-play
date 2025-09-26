@@ -6,7 +6,7 @@ import { translations, TranslationKey, Language } from './translations';
 interface I18nContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: TranslationKey) => string;
+  t: (key: TranslationKey, params?: Record<string, string>) => string;
 }
 
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
@@ -27,8 +27,20 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('game-language', language);
   }, [language]);
 
-  const t = (key: TranslationKey): string => {
-    return translations[language][key] || translations.en[key] || key;
+  const t = (key: TranslationKey, params?: Record<string, string>): string => {
+    let value = (translations[language][key] || translations.en[key] || key).toString();
+    if (typeof value !== 'string') {
+      return key;
+    }
+
+    // Replace parameters in the translation string
+    if (params) {
+      Object.entries(params).forEach(([paramKey, paramValue]) => {
+        value = value.replace(`{${paramKey}}`, paramValue);
+      });
+    }
+
+    return value;
   };
 
   return (

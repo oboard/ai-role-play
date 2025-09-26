@@ -26,7 +26,7 @@ import { Fragment, useState, useRef, useEffect } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
 import { Response } from '@/components/ai-elements/response';
-import { CopyIcon, MicIcon, RefreshCcwIcon } from 'lucide-react';
+import { CopyIcon, MicIcon, RefreshCcwIcon, Volume2Icon, VolumeXIcon, PlayIcon, PauseIcon, StopCircleIcon } from 'lucide-react';
 import { chatStorage } from '@/lib/chatStorage';
 import {
   Source,
@@ -41,22 +41,33 @@ import {
 } from '@/components/ai-elements/reasoning';
 import { Loader } from '@/components/ai-elements/loader';
 import { Character } from '@/types/game';
-import { ttsService } from '@/lib/ttsService';
+import { realtimeTtsService } from '@/lib/realtimeTtsService';
 import VoiceInput from './VoiceInput';
-import TtsList from './TtsList';
 
 const ChatInterface = (props: {
   character: Character;
 }) => {
   const [input, setInput] = useState('');
-  const [useMicrophone, setUseMicrophone] = useState<boolean>(false);
+  const [isTtsEnabled, setIsTtsEnabled] = useState<boolean>(true);
+  const [ttsStatus, setTtsStatus] = useState({ isStreaming: false, isPlaying: false });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const lastAssistantMessageRef = useRef<string>('');
   const lastMessageCountRef = useRef<number>(0);
-  
+  const isStreamingStartedRef = useRef<boolean>(false);
+
   // 从localStorage加载初始消息
   const initialMessages = chatStorage.loadMessages(props.character.id);
-  
+
+  // 根据角色设置默认语音
+  useEffect(() => {
+    if (props.character.voice) {
+      realtimeTtsService.setVoice(props.character.voice.voice_type);
+    }
+
+    // 设置状态变化回调
+    realtimeTtsService.setStatusChangeCallback(setTtsStatus);
+  }, [props.character]);
+
   const { messages, sendMessage, status, regenerate } = useChat({
     messages: initialMessages, // 设置初始消息
     transport: new DefaultChatTransport({
@@ -80,34 +91,41 @@ const ChatInterface = (props: {
   useEffect(() => {
     if (messages.length > 0) {
       const lastMessage = messages[messages.length - 1];
-      
+
       // 检查是否是新消息
       if (messages.length > lastMessageCountRef.current) {
         lastMessageCountRef.current = messages.length;
         lastAssistantMessageRef.current = '';
-        ttsService.reset(); // 重置 TTS 服务状态
+        isStreamingStartedRef.current = false;
+        realtimeTtsService.reset(); // 重置 TTS 服务状态
       }
-      
-      if (lastMessage.role === 'assistant' && status === 'streaming') {
+
+      if (lastMessage.role === 'assistant' && status === 'streaming' && isTtsEnabled) {
         // 获取最新的文本内容
         const currentText = lastMessage.parts
-          .filter(part => part.type === 'text')
-          .map(part => part.text)
+          .filter((part: any) => part.type === 'text')
+          .map((part: any) => part.text)
           .join('');
-        
-        // 只收集文本，不立即处理
-        if (currentText.length > lastAssistantMessageRef.current.length) {
+
+        // 开始实时流式处理
+        if (!isStreamingStartedRef.current && currentText.trim()) {
+          realtimeTtsService.startRealtimeStream(currentText);
+          isStreamingStartedRef.current = true;
+          lastAssistantMessageRef.current = currentText;
+        } else if (currentText.length > lastAssistantMessageRef.current.length) {
+          // 添加新的流式文本
           const newText = currentText.slice(lastAssistantMessageRef.current.length);
-          ttsService.addText(newText);
+          realtimeTtsService.addStreamText(newText);
           lastAssistantMessageRef.current = currentText;
         }
-      } else if (status !== 'streaming' && lastMessage.role === 'assistant') {
-        // 流式结束，处理完整的文本
-        ttsService.processCompleteText();
+      } else if (status !== 'streaming' && lastMessage.role === 'assistant' && isTtsEnabled && isStreamingStartedRef.current) {
+        // 流式结束，完成处理
+        realtimeTtsService.finishStream();
+        isStreamingStartedRef.current = false;
         lastAssistantMessageRef.current = '';
       }
     }
-  }, [messages, status]);
+  }, [messages, status, isTtsEnabled]);
 
   const handleSubmit = (message: PromptInputMessage) => {
     const hasText = Boolean(message.text);
@@ -136,122 +154,206 @@ const ChatInterface = (props: {
     setInput(text);
   };
 
+  const handleTtsToggle = () => {
+    if (isTtsEnabled) {
+      // 如果当前启用，则禁用并停止播放
+      realtimeTtsService.disable();
+      setIsTtsEnabled(false);
+    } else {
+      // 如果当前禁用，则启用
+      realtimeTtsService.enable();
+      setIsTtsEnabled(true);
+    }
+  };
+
+  const handleAudioPlay = () => {
+    realtimeTtsService.resume();
+  };
+
+  const handleAudioPause = () => {
+    realtimeTtsService.pause();
+  };
+
+  const handleAudioStop = () => {
+    realtimeTtsService.stop();
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6 relative size-full h-full">
-      <div className="flex flex-col h-full">
-        {/* TTS 控制面板 */}
-        <div className="mb-4 p-3 bg-slate-800 rounded-lg border border-slate-700">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-slate-300">语音设置</span>
-            <TtsList className="w-64" />
-          </div>
-        </div>
-        <Conversation className="h-full">
-          <ConversationContent>
-            {messages.map((message) => (
-              <div key={message.id}>
-                {message.role === 'assistant' && message.parts.filter((part) => part.type === 'source-url').length > 0 && (
-                  <Sources>
-                    <SourcesTrigger
-                      count={
-                        message.parts.filter(
-                          (part) => part.type === 'source-url',
-                        ).length
-                      }
-                    />
-                    {message.parts.filter((part) => part.type === 'source-url').map((part, i) => (
-                      <SourcesContent key={`${message.id}-${i}`}>
-                        <Source
-                          key={`${message.id}-${i}`}
-                          href={part.url}
-                          title={part.url}
-                        />
-                      </SourcesContent>
-                    ))}
-                  </Sources>
-                )}
-                {message.parts.map((part, i) => {
-                  switch (part.type) {
-                    case 'text':
-                      return (
-                        <Fragment key={`${message.id}-${i}`}>
-                          <Message from={message.role}>
-                            <MessageContent>
-                              <Response>
-                                {part.text}
-                              </Response>
-                            </MessageContent>
-                          </Message>
-                          {message.role === 'assistant' && i === messages.length - 1 && (
-                            <Actions className="mt-2">
-                              <Action
-                                onClick={() => regenerate()}
-                                label="Retry"
-                              >
-                                <RefreshCcwIcon className="size-3" />
-                              </Action>
-                              <Action
-                                onClick={() =>
-                                  navigator.clipboard.writeText(part.text)
-                                }
-                                label="Copy"
-                              >
-                                <CopyIcon className="size-3" />
-                              </Action>
-                            </Actions>
-                          )}
-                        </Fragment>
-                      );
-                    case 'reasoning':
-                      return (
-                        <Reasoning
-                          key={`${message.id}-${i}`}
-                          className="w-full"
-                          isStreaming={status === 'streaming' && i === message.parts.length - 1 && message.id === messages.at(-1)?.id}
-                        >
-                          <ReasoningTrigger />
-                          <ReasoningContent>{part.text}</ReasoningContent>
-                        </Reasoning>
-                      );
-                    default:
-                      return null;
-                  }
-                })}
-              </div>
-            ))}
-            {status === 'submitted' && <Loader />}
-            <div ref={messagesEndRef} />
-          </ConversationContent>
-          <ConversationScrollButton />
-        </Conversation>
+      {/* TTS 开关按钮 - 右上角 */}
+      <button
+        onClick={handleTtsToggle}
+        className={`absolute top-4 right-4 z-10 p-2 rounded-full transition-colors ${isTtsEnabled
+          ? 'bg-primary hover:bg-primary/90 text-primary-foreground'
+          : 'bg-muted hover:bg-muted/80 text-muted-foreground'
+          }`}
+        title={isTtsEnabled ? '关闭语音播放' : '开启语音播放'}
+      >
+        {isTtsEnabled ? (
+          <Volume2Icon size={20} />
+        ) : (
+          <VolumeXIcon size={20} />
+        )}
+      </button>
 
-        <PromptInput onSubmit={handleSubmit} className="mt-4" globalDrop multiple>
-          <PromptInputBody>
-            <PromptInputAttachments>
-              {(attachment) => <PromptInputAttachment data={attachment} />}
-            </PromptInputAttachments>
-            <PromptInputTextarea
-              onChange={(e) => setInput(e.target.value)}
-              value={input}
-            />
-          </PromptInputBody>
-          <PromptInputToolbar>
-            <PromptInputTools>
-              <PromptInputButton
-                onClick={() => setUseMicrophone(!useMicrophone)}
-                variant={useMicrophone ? 'default' : 'ghost'}
-              >
-                <MicIcon size={16} />
-                <span className="sr-only">Microphone</span>
-              </PromptInputButton>
-            </PromptInputTools>
-            <VoiceInput 
-              onTextRecognized={handleVoiceText}
-              className="mb-2"
-            />
-            <PromptInputSubmit disabled={!input && !status} status={status} />
-          </PromptInputToolbar>
-        </PromptInput>
+      <div className="flex flex-col h-full">
+        {/* 对话区域 - 可滚动 */}
+        <div className="h-1 flex-1 overflow-y-scroll">
+          <Conversation className="h-full">
+            <ConversationContent>
+              {messages.map((message) => (
+                <div key={message.id}>
+                  {message.role === 'assistant' && message.parts.filter((part) => part.type === 'source-url').length > 0 && (
+                    <Sources>
+                      <SourcesTrigger
+                        count={
+                          message.parts.filter(
+                            (part) => part.type === 'source-url',
+                          ).length
+                        }
+                      />
+                      {message.parts.filter((part) => part.type === 'source-url').map((part, i) => (
+                        <SourcesContent key={`${message.id}-${i}`}>
+                          <Source
+                            key={`${message.id}-${i}`}
+                            href={part.url}
+                            title={part.url}
+                          />
+                        </SourcesContent>
+                      ))}
+                    </Sources>
+                  )}
+                  {message.parts.map((part, i) => {
+                    switch (part.type) {
+                      case 'text':
+                        return (
+                          <Fragment key={`${message.id}-${i}`}>
+                            <Message from={message.role}>
+                              <MessageContent>
+                                <Response>
+                                  {part.text}
+                                </Response>
+                              </MessageContent>
+                            </Message>
+                            {message.role === 'assistant' && i === messages.length - 1 && (
+                              <Actions className="mt-2">
+                                <Action
+                                  onClick={() => regenerate()}
+                                  label="Retry"
+                                >
+                                  <RefreshCcwIcon className="size-3" />
+                                </Action>
+                                <Action
+                                  onClick={() =>
+                                    navigator.clipboard.writeText(part.text)
+                                  }
+                                  label="Copy"
+                                >
+                                  <CopyIcon className="size-3" />
+                                </Action>
+                              </Actions>
+                            )}
+                          </Fragment>
+                        );
+                      case 'reasoning':
+                        return (
+                          <Reasoning
+                            key={`${message.id}-${i}`}
+                            className="w-full"
+                            isStreaming={status === 'streaming' && i === message.parts.length - 1 && message.id === messages.at(-1)?.id}
+                          >
+                            <ReasoningTrigger />
+                            <ReasoningContent>{part.text}</ReasoningContent>
+                          </Reasoning>
+                        );
+                      default:
+                        return null;
+                    }
+                  })}
+                </div>
+              ))}
+              {status === 'submitted' && <Loader />}
+              <div ref={messagesEndRef} />
+            </ConversationContent>
+            <ConversationScrollButton />
+          </Conversation>
+        </div>
+
+        {/* 输入框区域 - 固定在底部 */}
+        <div className="flex-shrink-0 mt-4">
+          <PromptInput onSubmit={handleSubmit} globalDrop multiple>
+            <PromptInputBody>
+              {/* <PromptInputAttachments>
+                {(attachment) => <PromptInputAttachment data={attachment} />}
+              </PromptInputAttachments> */}
+              <PromptInputTextarea
+                onChange={(e) => setInput(e.target.value)}
+                value={input}
+              />
+            </PromptInputBody>
+            <PromptInputToolbar>
+              <PromptInputTools>
+                <VoiceInput
+                  onTextRecognized={handleVoiceText}
+                  className="mb-2"
+                />
+
+                {/* TTS 控制按钮组 */}
+                <div className="flex items-center gap-1 mb-2">
+                  <PromptInputButton
+                    onClick={handleTtsToggle}
+                    variant="ghost"
+                    size="sm"
+                    className="p-2"
+                    title={isTtsEnabled ? "关闭语音播放" : "开启语音播放"}
+                  >
+                    {isTtsEnabled ? <Volume2Icon className="size-4" /> : <VolumeXIcon className="size-4" />}
+                  </PromptInputButton>
+
+                  {isTtsEnabled && (
+                    <>
+                      {ttsStatus.isPlaying ? (
+                        <PromptInputButton
+                          onClick={handleAudioPause}
+                          variant="ghost"
+                          size="sm"
+                          className="p-2"
+                          title="暂停播放"
+                        >
+                          <PauseIcon className="size-4" />
+                        </PromptInputButton>
+                      ) : (
+                        <PromptInputButton
+                          onClick={handleAudioPlay}
+                          variant="ghost"
+                          size="sm"
+                          className="p-2"
+                          title="继续播放"
+                          disabled={!ttsStatus.isStreaming}
+                        >
+                          <PlayIcon className="size-4" />
+                        </PromptInputButton>
+                      )}
+
+                      <PromptInputButton
+                        onClick={handleAudioStop}
+                        variant="ghost"
+                        size="sm"
+                        className="p-2"
+                        title="停止播放"
+                        disabled={!ttsStatus.isStreaming && !ttsStatus.isPlaying}
+                      >
+                        <StopCircleIcon className="size-4" />
+                      </PromptInputButton>
+                    </>
+                  )}
+                </div>
+              </PromptInputTools>
+
+              <PromptInputSubmit disabled={!input && !status} status={status} />
+            </PromptInputToolbar>
+          </PromptInput>
+        </div>
       </div>
     </div>
   );

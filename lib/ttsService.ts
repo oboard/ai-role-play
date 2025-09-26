@@ -10,11 +10,19 @@ class TtsService {
   private isProcessing = false; // 防止重复处理
 
   constructor() {
-    this.initializeAudioContext();
+    // Only initialize in browser environment
+    if (typeof window !== 'undefined') {
+      this.initializeAudioContext();
+    }
   }
 
   private async initializeAudioContext() {
     try {
+      // Check if we're in browser environment
+      if (typeof window === 'undefined') {
+        return;
+      }
+      
       this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     } catch (error) {
       console.error('Failed to initialize audio context:', error);
@@ -62,7 +70,7 @@ class TtsService {
     const protectedText = text.replace(/"([^"]*)"/g, (match, content) => {
       return `__QUOTE_START__${content}__QUOTE_END__`;
     });
-    
+
     // 移除各种动作描述的括号
     let filteredText = protectedText
       .replace(/（[^）]*）/g, '') // 移除 （）
@@ -70,14 +78,14 @@ class TtsService {
       .replace(/\[[^\]]*\]/g, '') // 移除 []
       .replace(/\{[^}]*\}/g, '') // 移除 {}
       .replace(/【[^】]*】/g, ''); // 移除 【】
-    
+
     // 恢复双引号
     filteredText = filteredText
       .replace(/__QUOTE_START__/g, '"')
       .replace(/__QUOTE_END__/g, '"')
       .replace(/\s+/g, ' ') // 将多个空格合并为一个
       .trim();
-    
+
     return filteredText;
   }
 
@@ -89,7 +97,7 @@ class TtsService {
 
     // 过滤掉动作描述的括号
     const filteredText = this.filterActionBrackets(text);
-    
+
     if (!filteredText.trim()) {
       return; // 如果过滤后没有内容，不处理
     }
@@ -110,7 +118,7 @@ class TtsService {
     const textToProcess = this.textBuffer.trim();
     this.textBuffer = '';
     this.lastProcessedLength = 0;
-    
+
     this.processTextBuffer(textToProcess);
   }
 
@@ -150,9 +158,9 @@ class TtsService {
 
       while (true) {
         const { done, value } = await reader.read();
-        
+
         if (done) break;
-        
+
         chunks.push(value);
         totalLength += value.length;
       }
@@ -195,7 +203,7 @@ class TtsService {
       const source = this.audioContext.createBufferSource();
       source.buffer = audioBuffer;
       source.connect(this.audioContext.destination);
-      
+
       source.onended = () => {
         this.sourceNode = null;
       };
@@ -213,4 +221,4 @@ class TtsService {
   }
 }
 
-export const ttsService = new TtsService(); 
+export const ttsService = new TtsService();

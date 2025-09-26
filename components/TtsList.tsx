@@ -26,10 +26,10 @@ interface VoiceSelectorProps {
   className?: string;
 }
 
-export default function TtsList({ 
-  onVoiceSelect, 
-  selectedVoice, 
-  className = "" 
+export default function TtsList({
+  onVoiceSelect,
+  selectedVoice,
+  className = ""
 }: VoiceSelectorProps) {
   const [voiceList, setVoiceList] = useState<VoiceItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -41,11 +41,11 @@ export default function TtsList({
   const fetchVoiceList = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const response = await fetch('/api/voice/list');
       const result: VoiceListResponse = await response.json();
-      
+
       if (result.success) {
         setVoiceList(result.data);
         // 设置默认音色
@@ -85,7 +85,7 @@ export default function TtsList({
         audioRef.pause();
         audioRef.currentTime = 0;
       }
-      
+
       // 创建新的音频元素并播放
       const audio = new Audio(hoveredVoice.url);
       audio.volume = 0.5; // 设置音量
@@ -155,7 +155,7 @@ export default function TtsList({
     return (
       <div className={`space-y-2 ${className}`}>
         <div className="text-red-600 text-sm">加载失败: {error}</div>
-        <Button 
+        <Button
           onClick={fetchVoiceList}
           variant="outline"
           size="sm"
@@ -168,8 +168,8 @@ export default function TtsList({
 
   return (
     <div className={`space-y-2 ${className}`}>
-      <Select 
-        value={internalSelectedVoice?.voice_type || ""} 
+      <Select
+        value={internalSelectedVoice?.voice_type || ""}
         onValueChange={handleVoiceChange}
       >
         <SelectTrigger className="w-full h-16">
@@ -182,8 +182,8 @@ export default function TtsList({
                 {category}
               </div>
               {voices.map((voice) => (
-                <SelectItem 
-                  key={voice.voice_type} 
+                <SelectItem
+                  key={voice.voice_type}
                   value={voice.voice_type}
                   onMouseEnter={() => handleMouseEnter(voice)}
                   onMouseLeave={handleMouseLeave}

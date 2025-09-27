@@ -197,103 +197,102 @@ const ChatInterface = (props: {
         )}
       </button>
 
-      <div className="flex flex-col h-full">
-        {/* 对话区域 - 可滚动 */}
-        <div className="h-1 flex-1 overflow-y-scroll">
-          <Conversation className="h-full">
-            <ConversationContent>
-              {messages.map((message) => (
-                <div key={message.id}>
-                  {message.role === 'assistant' && message.parts.filter((part) => part.type === 'source-url').length > 0 && (
-                    <Sources>
-                      <SourcesTrigger
-                        count={
-                          message.parts.filter(
-                            (part) => part.type === 'source-url',
-                          ).length
-                        }
-                      />
-                      {message.parts.filter((part) => part.type === 'source-url').map((part, i) => {
-                        // TypeScript类型断言：已通过filter确保part是SourceUrlUIPart类型
-                        const sourcePart = part as { type: 'source-url'; url: string; title?: string };
-                        return (
-                          <SourcesContent key={`${message.id}-${i}`}>
-                            <Source
-                              key={`${message.id}-${i}`}
-                              href={sourcePart.url}
-                              title={sourcePart.title || sourcePart.url}
-                            />
-                          </SourcesContent>
-                        );
-                      })}
-                    </Sources>
-                  )}
-                  {message.parts.map((part, i) => {
-                    switch (part.type) {
-                      case 'text':
-                        return (
-                          <Fragment key={`${message.id}-${i}`}>
-                            <Message from={message.role}>
-                              <MessageContent>
-                                <Response>
-                                  {part.text}
-                                </Response>
-                              </MessageContent>
-                            </Message>
-                            {message.role === 'assistant' && i === messages.length - 1 && (
-                              <Actions className="mt-2">
-                                <Action
-                                  onClick={() => regenerate()}
-                                  label="Retry"
-                                >
-                                  <RefreshCcwIcon className="size-3" />
-                                </Action>
-                                <Action
-                                  onClick={() =>
-                                    navigator.clipboard.writeText(part.text)
-                                  }
-                                  label="Copy"
-                                >
-                                  <CopyIcon className="size-3" />
-                                </Action>
-                              </Actions>
-                            )}
-                          </Fragment>
-                        );
-                      case 'reasoning':
-                        return (
-                          <Reasoning
+      <div className="flex flex-col gap-2 h-full">
+        {/* 对话区域 */}
+        <Conversation className="h-1 flex-1">
+          <ConversationContent>
+            {messages.map((message) => (
+              <div key={message.id}>
+                {message.role === 'assistant' && message.parts.filter((part) => part.type === 'source-url').length > 0 && (
+                  <Sources>
+                    <SourcesTrigger
+                      count={
+                        message.parts.filter(
+                          (part) => part.type === 'source-url',
+                        ).length
+                      }
+                    />
+                    {message.parts.filter((part) => part.type === 'source-url').map((part, i) => {
+                      // TypeScript类型断言：已通过filter确保part是SourceUrlUIPart类型
+                      const sourcePart = part as { type: 'source-url'; url: string; title?: string };
+                      return (
+                        <SourcesContent key={`${message.id}-${i}`}>
+                          <Source
                             key={`${message.id}-${i}`}
-                            className="w-full"
-                            isStreaming={status === 'streaming' && i === message.parts.length - 1 && message.id === messages.at(-1)?.id}
-                          >
-                            <ReasoningTrigger />
-                            <ReasoningContent>{part.text}</ReasoningContent>
-                          </Reasoning>
-                        );
-                      default:
-                        return null;
-                    }
-                  })}
-                </div>
-              ))}
-              {status === 'submitted' && <Loader />}
-              <div ref={messagesEndRef} />
-            </ConversationContent>
-            <ConversationScrollButton />
-          </Conversation>
-        </div>
+                            href={sourcePart.url}
+                            title={sourcePart.title || sourcePart.url}
+                          />
+                        </SourcesContent>
+                      );
+                    })}
+                  </Sources>
+                )}
+                {message.parts.map((part, i) => {
+                  switch (part.type) {
+                    case 'text':
+                      return (
+                        <Fragment key={`${message.id}-${i}`}>
+                          <Message from={message.role}>
+                            <MessageContent>
+                              <Response>
+                                {part.text}
+                              </Response>
+                            </MessageContent>
+                          </Message>
+                          {message.role === 'assistant' && i === messages.length - 1 && (
+                            <Actions className="mt-2">
+                              <Action
+                                onClick={() => regenerate()}
+                                label="Retry"
+                              >
+                                <RefreshCcwIcon className="size-3" />
+                              </Action>
+                              <Action
+                                onClick={() =>
+                                  navigator.clipboard.writeText(part.text)
+                                }
+                                label="Copy"
+                              >
+                                <CopyIcon className="size-3" />
+                              </Action>
+                            </Actions>
+                          )}
+                        </Fragment>
+                      );
+                    case 'reasoning':
+                      return (
+                        <Reasoning
+                          key={`${message.id}-${i}`}
+                          className="w-full"
+                          isStreaming={status === 'streaming' && i === message.parts.length - 1 && message.id === messages.at(-1)?.id}
+                        >
+                          <ReasoningTrigger />
+                          <ReasoningContent>{part.text}</ReasoningContent>
+                        </Reasoning>
+                      );
+                    default:
+                      return null;
+                  }
+                })}
+              </div>
+            ))}
+            {status === 'submitted' && <Loader />}
+            <div ref={messagesEndRef} />
+          </ConversationContent>
+          <ConversationScrollButton />
+        </Conversation>
+
 
         {/* AI技能按钮区域 */}
-        <div className="flex-shrink-0 mb-4">
-          <SkillButtons 
+        <div className="flex-shrink-0">
+          <SkillButtons
             character={props.character}
             onSkillSelect={(prompt) => setInput(prompt)}
           />
         </div>
 
         {/* 输入框区域 - 固定在底部 */}
-        <div className="flex-shrink-0 mt-4">
+        <div className="flex-shrink-0">
           <PromptInput onSubmit={handleSubmit} globalDrop multiple>
             <PromptInputBody>
               {/* <PromptInputAttachments>

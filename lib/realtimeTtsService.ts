@@ -64,6 +64,15 @@ class RealtimeTtsService {
     this.onStatusChange = callback;
   }
 
+  // 直接获取当前TTS状态
+  getTtsStatus() {
+    return {
+      isStreaming: this.isStreaming,
+      isPlaying: this.isPlaying && !this.isPaused,
+      isPaused: this.isPaused
+    };
+  }
+
   private updateStatus() {
     if (this.onStatusChange) {
       this.onStatusChange({
@@ -311,7 +320,7 @@ class RealtimeTtsService {
     }
 
     const audioBuffer = this.audioQueue[this.currentPlayingIndex];
-    this.currentPlayingIndex++;
+    // 注意：不要在这里立即递增索引，而是在音频结束时递增
 
     try {
       this.stopCurrentAudio();
@@ -322,8 +331,11 @@ class RealtimeTtsService {
 
       source.onended = () => {
         this.sourceNode = null;
-        // 播放下一个音频
-        this.playNextAudio();
+        // 只有在音频正常结束时才递增索引并播放下一个
+        if (!this.isPaused) {
+          this.currentPlayingIndex++;
+          this.playNextAudio();
+        }
       };
 
       source.start();
@@ -346,6 +358,7 @@ class RealtimeTtsService {
         this.sourceNode.stop();
         this.sourceNode = null;
       }
+      // 不递增索引，保持在当前位置
       this.updateStatus();
     }
   }
@@ -354,7 +367,7 @@ class RealtimeTtsService {
   resume() {
     if (this.isPaused) {
       this.isPaused = false;
-      // 从当前位置继续播放
+      // 从当前位置继续播放（不递增索引）
       if (this.currentPlayingIndex < this.audioQueue.length) {
         this.playNextAudio();
       }

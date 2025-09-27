@@ -50,7 +50,7 @@ const ChatInterface = (props: {
 }) => {
   const [input, setInput] = useState('');
   const [isTtsEnabled, setIsTtsEnabled] = useState<boolean>(true);
-  const [ttsStatus, setTtsStatus] = useState({ isStreaming: false, isPlaying: false, isPaused: false });
+  const [, forceUpdate] = useState({}); // 用于强制组件更新
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const lastAssistantMessageRef = useRef<string>('');
   const lastMessageCountRef = useRef<number>(0);
@@ -65,14 +65,9 @@ const ChatInterface = (props: {
       realtimeTtsService.setVoice(props.character.voice.voice_type);
     }
 
-    // 设置状态变化回调
-    // 设置状态变化回调，处理可能缺少isPaused字段的情况
-    realtimeTtsService.setStatusChangeCallback((status) => {
-      setTtsStatus({
-        isStreaming: status.isStreaming,
-        isPlaying: status.isPlaying,
-        isPaused: (status as any).isPaused || false // 兼容处理
-      });
+    // 设置状态变化回调，触发组件重新渲染
+    realtimeTtsService.setStatusChangeCallback(() => {
+      forceUpdate({}); // 强制组件更新以反映最新状态
     });
   }, [props.character]);
 
@@ -293,6 +288,22 @@ const ChatInterface = (props: {
                               >
                                 <CopyIcon className="size-3" />
                               </Action>
+                              {!realtimeTtsService.getTtsStatus().isPlaying && <Action
+                                onClick={() => {
+                                  realtimeTtsService.startRealtimeStream(part.text);
+                                  realtimeTtsService.finishStream();
+                                }}
+                                label="Play"
+                              >
+                                <PlayIcon className="size-3" />
+                              </Action>
+                              }
+                              {realtimeTtsService.getTtsStatus().isPlaying && <Action
+                                onClick={() => handleAudioStop()}
+                                label="Stop"
+                              >
+                                <StopCircleIcon className="size-3" />
+                              </Action>}
                             </Actions>
                           )}
                         </Fragment>
@@ -362,7 +373,7 @@ const ChatInterface = (props: {
 
                   {isTtsEnabled && (
                     <>
-                      {ttsStatus.isPlaying && !ttsStatus.isPaused ? (
+                      {realtimeTtsService.getTtsStatus().isPlaying && !realtimeTtsService.getTtsStatus().isPaused ? (
                         <PromptInputButton
                           onClick={handleAudioPause}
                           variant="ghost"
@@ -378,8 +389,8 @@ const ChatInterface = (props: {
                           variant="ghost"
                           size="sm"
                           className="p-2"
-                          title={ttsStatus.isPaused ? "继续播放" : "开始播放"}
-                          disabled={!ttsStatus.isStreaming && !ttsStatus.isPaused}
+                          title={realtimeTtsService.getTtsStatus().isPaused ? "继续播放" : "开始播放"}
+                          disabled={!realtimeTtsService.getTtsStatus().isStreaming && !realtimeTtsService.getTtsStatus().isPaused}
                         >
                           <PlayIcon className="size-4" />
                         </PromptInputButton>
@@ -391,7 +402,7 @@ const ChatInterface = (props: {
                         size="sm"
                         className="p-2"
                         title="停止播放"
-                        disabled={!ttsStatus.isStreaming && !ttsStatus.isPlaying && !ttsStatus.isPaused}
+                        disabled={!realtimeTtsService.getTtsStatus().isStreaming && !realtimeTtsService.getTtsStatus().isPlaying && !realtimeTtsService.getTtsStatus().isPaused}
                       >
                         <StopCircleIcon className="size-4" />
                       </PromptInputButton>

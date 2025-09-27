@@ -1,24 +1,57 @@
 'use client';
 
 import { Globe } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useTranslation } from '@/lib/i18n';
 
 export default function LanguageSwitcher() {
   const { language, setLanguage, t } = useTranslation();
 
+  const getLanguageLabel = () => {
+    switch (language) {
+      case 'en':
+        return t('english');
+      case 'zh':
+        return t('chinese');
+      default:
+        return t('english');
+    }
+  };
+
   return (
-    <div className="bg-card border border-border rounded-lg py-1 px-2">
-      <div className="flex items-center space-x-2">
-        <Globe size={16} className="text-muted-foreground" />
-        <select
-          value={language}
-          onChange={(e) => setLanguage(e.target.value as 'en' | 'zh')}
-          className="bg-background text-foreground text-sm rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-ring"
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className="bg-card border-border text-muted-foreground hover:bg-background hover:text-foreground"
         >
-          <option value="en">{t('english')}</option>
-          <option value="zh">{t('chinese')}</option>
-        </select>
-      </div>
-    </div>
+          <Globe className="h-4 w-4" />
+          <span className="ml-2">{getLanguageLabel()}</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="bg-card border-border">
+        <DropdownMenuItem
+          onClick={() => setLanguage('en')}
+          className="text-muted-foreground hover:bg-background hover:text-foreground"
+        >
+          <Globe className="mr-2 h-4 w-4" />
+          {t('english')}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => setLanguage('zh')}
+          className="text-muted-foreground hover:bg-background hover:text-foreground"
+        >
+          <Globe className="mr-2 h-4 w-4" />
+          {t('chinese')}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

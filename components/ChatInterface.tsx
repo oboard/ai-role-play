@@ -287,7 +287,7 @@ const ChatInterface = (props: {
         <div className="flex-shrink-0">
           <SkillButtons
             character={props.character}
-            onSkillSelect={(prompt) => setInput(prompt)}
+            onSkillSelect={(_, prompt) => setInput(prompt)}
           />
         </div>
 

@@ -102,6 +102,29 @@ export const translations = {
     networkError: "Network error, please try again",
     audioPlaybackFailed: "Audio playback failed",
 
+    // AI Skills
+    aiSkills: "AI Skills",
+    specialAbilities: "Special Abilities",
+    knowledgeQA: "Knowledge Q&A",
+    knowledgeQADesc: "Ask professional questions",
+    creativeWriting: "Creative Writing",
+    creativeWritingDesc: "Create stories and poems",
+    logicalReasoning: "Logical Reasoning",
+    logicalReasoningDesc: "Analyze and deduce",
+    askAboutExpertise: "Ask about your expertise",
+    explainConcept: "Explain a complex concept",
+    shareWisdom: "Share your wisdom",
+    discussPhilosophy: "Discuss philosophy",
+    writePoem: "Write a poem",
+    createStory: "Create a short story",
+    composeDialogue: "Compose a dialogue",
+    describeScene: "Describe a scene",
+    analyzeProblems: "Analyze this problem",
+    makeDeductions: "Make logical deductions",
+    solveRiddles: "Solve riddles",
+    evaluateArguments: "Evaluate arguments",
+    selectPromptAbove: "Select a prompt above to start",
+
     // Characters
     characters: {
       socrates: {
@@ -238,7 +261,7 @@ export const translations = {
     enableVoicePlayback: "开启语音播放",
     disableVoicePlayback: "关闭语音播放",
 
-    // Errors
+    // Error messages
     pleaseEnterText: "请输入要转换的文本",
     pleaseSelectVoice: "请选择音色",
     ttsConversionFailed: "文字转语音失败",
@@ -246,6 +269,29 @@ export const translations = {
     audioPlaybackFailed: "音频播放失败",
     realtimeConversionFailed: "实时转换失败",
     unknownError: "未知错误",
+
+    // AI Skills
+    aiSkills: "AI 技能",
+    specialAbilities: "特殊能力",
+    knowledgeQA: "知识问答",
+    knowledgeQADesc: "询问专业问题",
+    creativeWriting: "创意写作",
+    creativeWritingDesc: "创作故事和诗歌",
+    logicalReasoning: "逻辑推理",
+    logicalReasoningDesc: "分析和推理",
+    askAboutExpertise: "询问你的专业领域",
+    explainConcept: "解释复杂概念",
+    shareWisdom: "分享你的智慧",
+    discussPhilosophy: "讨论哲学思想",
+    writePoem: "写一首诗",
+    createStory: "创作短篇故事",
+    composeDialogue: "创作对话",
+    describeScene: "描述场景",
+    analyzeProblems: "分析这个问题",
+    makeDeductions: "进行逻辑推理",
+    solveRiddles: "解决谜题",
+    evaluateArguments: "评估论证",
+    selectPromptAbove: "选择上面的提示开始",
 
     // Characters
     characters: {

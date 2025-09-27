@@ -246,7 +246,7 @@ export default function CharacterSearch() {
               </div>
             </div>
 
-            <CardHeader className="pb-3">
+            <CardHeader>
               <CardTitle className="text-foreground text-lg">{character.name}</CardTitle>
               <CardDescription className="text-muted-foreground">
                 {character.description}

@@ -43,6 +43,7 @@ import { Loader } from '@/components/ai-elements/loader';
 import { Character } from '@/types/game';
 import { realtimeTtsService } from '@/lib/realtimeTtsService';
 import VoiceInput from './VoiceInput';
+import SkillButtons from './SkillButtons';
 
 const ChatInterface = (props: {
   character: Character;
@@ -281,6 +282,14 @@ const ChatInterface = (props: {
             </ConversationContent>
             <ConversationScrollButton />
           </Conversation>
+        </div>
+
+        {/* AI技能按钮区域 */}
+        <div className="flex-shrink-0 mb-4">
+          <SkillButtons 
+            character={props.character}
+            onSkillSelect={(prompt) => setInput(prompt)}
+          />
         </div>
 
         {/* 输入框区域 - 固定在底部 */}

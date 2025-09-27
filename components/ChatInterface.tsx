@@ -155,6 +155,37 @@ const ChatInterface = (props: {
     setInput(text);
   };
 
+  const handleSkillSelect = (skillType: string, promptData: any) => {
+    // 如果是新的结构（包含systemPrompt和userMessage）
+    if (promptData && typeof promptData === 'object' && promptData.systemPrompt && promptData.userMessage) {
+      // 发送用户消息，系统提示会在角色响应时自动应用
+      sendMessage(
+        {
+          text: promptData.userMessage,
+          files: []
+        },
+        {
+          body: {
+            character: props.character
+          }
+        }
+      );
+    } else {
+      // 兼容旧格式（直接是字符串）
+      sendMessage(
+        {
+          text: promptData,
+          files: []
+        },
+        {
+          body: {
+            character: props.character
+          }
+        }
+      );
+    }
+  };
+
   const handleTtsToggle = () => {
     if (isTtsEnabled) {
       // 如果当前启用，则禁用并停止播放
@@ -287,7 +318,7 @@ const ChatInterface = (props: {
         <div className="flex-shrink-0">
           <SkillButtons
             character={props.character}
-            onSkillSelect={(_, prompt) => setInput(prompt)}
+            onSkillSelect={handleSkillSelect}
           />
         </div>
 

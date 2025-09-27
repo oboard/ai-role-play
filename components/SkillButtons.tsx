@@ -10,7 +10,7 @@ import { Character } from '@/types/game';
 
 interface SkillButtonsProps {
     character: Character;
-    onSkillSelect: (skillType: string, prompt: string) => void;
+    onSkillSelect: (promptData: any) => void;
     disabled?: boolean;
 }
 
@@ -457,9 +457,9 @@ export default function SkillButtons({ character, onSkillSelect, disabled = fals
         }
     };
 
-    const handlePromptClick = (skillType: string, promptObj: any) => {
+    const handlePromptClick = (promptObj: any) => {
         // 直接传递prompt对象，让ChatInterface处理
-        onSkillSelect(skillType, promptObj);
+        onSkillSelect(promptObj);
         setSelectedSkill(null);
     };
 
@@ -506,7 +506,7 @@ export default function SkillButtons({ character, onSkillSelect, disabled = fals
                                             variant="outline"
                                             size="sm"
                                             className="w-full text-left justify-start h-auto py-2 px-3 text-xs"
-                                            onClick={() => handlePromptClick(skill.id, promptObj)}
+                                            onClick={() => handlePromptClick(promptObj)}
                                             disabled={disabled}
                                         >
                                             {promptObj.title}

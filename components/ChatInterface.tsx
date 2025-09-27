@@ -155,7 +155,7 @@ const ChatInterface = (props: {
     setInput(text);
   };
 
-  const handleSkillSelect = (skillType: string, promptData: any) => {
+  const handleSkillSelect = (promptData: any) => {
     // 如果是新的结构（包含systemPrompt和userMessage）
     if (promptData && typeof promptData === 'object' && promptData.systemPrompt && promptData.userMessage) {
       // 发送用户消息，系统提示会在角色响应时自动应用

@@ -1,3 +1,11 @@
+interface PendingAudioTask {
+  id: number;
+  text: string;
+  audioBuffer?: AudioBuffer;
+  isProcessing: boolean;
+  isCompleted: boolean;
+}
+
 class RealtimeTtsService {
   private audioContext: AudioContext | null = null;
   private sourceNode: AudioBufferSourceNode | null = null;
@@ -10,6 +18,11 @@ class RealtimeTtsService {
   private audioQueue: AudioBuffer[] = [];
   private currentPlayingIndex = 0;
   private onStatusChange?: (status: { isStreaming: boolean; isPlaying: boolean }) => void;
+  
+  // 新增：顺序处理相关
+  private pendingTasks: PendingAudioTask[] = [];
+  private nextTaskId = 0;
+  private isProcessingQueue = false;
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -74,6 +87,9 @@ class RealtimeTtsService {
     this.isStreaming = false;
     this.audioQueue = [];
     this.currentPlayingIndex = 0;
+    this.pendingTasks = [];
+    this.nextTaskId = 0;
+    this.isProcessingQueue = false;
     this.stopCurrentAudio();
     this.updateStatus();
   }
@@ -164,12 +180,67 @@ class RealtimeTtsService {
     this.updateStatus();
   }
 
-  // 处理文本块
+  // 处理文本块 - 添加到顺序处理队列
   private async processTextChunk(text: string) {
     if (!text.trim() || !this.voiceType) {
       return;
     }
 
+    // 创建新任务并添加到队列
+    const task: PendingAudioTask = {
+      id: this.nextTaskId++,
+      text: text.trim(),
+      isProcessing: false,
+      isCompleted: false
+    };
+
+    this.pendingTasks.push(task);
+
+    // 开始处理队列
+    this.processTaskQueue();
+  }
+
+  // 顺序处理任务队列
+  private async processTaskQueue() {
+    if (this.isProcessingQueue) {
+      return;
+    }
+
+    this.isProcessingQueue = true;
+
+    while (this.pendingTasks.length > 0) {
+      const task = this.pendingTasks[0];
+
+      if (!task.isProcessing && !task.isCompleted) {
+        task.isProcessing = true;
+        await this.processSingleTask(task);
+        task.isCompleted = true;
+      }
+
+      if (task.isCompleted) {
+        // 将完成的音频添加到播放队列
+        if (task.audioBuffer) {
+          this.audioQueue.push(task.audioBuffer);
+
+          // 如果当前没有播放，开始播放
+          if (!this.isPlaying) {
+            this.playNextAudio();
+          }
+        }
+
+        // 移除已完成的任务
+        this.pendingTasks.shift();
+      } else {
+        // 如果任务未完成，等待一下再检查
+        break;
+      }
+    }
+
+    this.isProcessingQueue = false;
+  }
+
+  // 处理单个任务
+  private async processSingleTask(task: PendingAudioTask) {
     try {
       const response = await fetch('/api/voice/tts-ws-proxy', {
         method: 'POST',
@@ -177,7 +248,7 @@ class RealtimeTtsService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          text: text.trim(),
+          text: task.text,
           voice_type: this.voiceType,
           speed_ratio: this.speedRatio
         }),
@@ -219,12 +290,7 @@ class RealtimeTtsService {
       // 解码音频数据
       if (this.audioContext) {
         const audioBuffer = await this.audioContext.decodeAudioData(audioData.buffer);
-        this.audioQueue.push(audioBuffer);
-
-        // 如果当前没有播放，开始播放
-        if (!this.isPlaying) {
-          this.playNextAudio();
-        }
+        task.audioBuffer = audioBuffer;
       }
 
     } catch (error) {

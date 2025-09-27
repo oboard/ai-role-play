@@ -11,7 +11,7 @@ import characterData from '@/lib/characterData.json';
 import { CustomCharacterStorage } from '@/lib/customCharacterStorage';
 import { useTranslation } from '@/lib/i18n';
 import { generateAvatarUrl, generateBackgroundUrl } from '@/lib/imageUtils';
-import { ttsService } from '@/lib/ttsService';
+import { realtimeTtsService } from '@/lib/realtimeTtsService';
 
 export default function ChatPage() {
   const params = useParams();
@@ -51,7 +51,7 @@ export default function ChatPage() {
   // 设置角色的默认语音
   useEffect(() => {
     if (character?.voice) {
-      ttsService.setVoice(character.voice.voice_type);
+      realtimeTtsService.setVoice(character.voice.voice_type);
     }
   }, [character]);
 

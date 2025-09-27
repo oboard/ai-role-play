@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
-import { ttsService } from '@/lib/ttsService';
+import { realtimeTtsService } from '@/lib/realtimeTtsService';
 
 interface VoiceItem {
   voice_name: string;
@@ -52,7 +52,7 @@ export default function TtsList({
         if (result.data.length > 0 && !internalSelectedVoice) {
           const defaultVoice = result.data[0];
           setInternalSelectedVoice(defaultVoice);
-          ttsService.setVoice(defaultVoice.voice_type);
+          realtimeTtsService.setVoice(defaultVoice.voice_type);
         }
       } else {
         setError(result.error || 'Failed to fetch voice list');
@@ -73,7 +73,7 @@ export default function TtsList({
   useEffect(() => {
     if (selectedVoice) {
       setInternalSelectedVoice(selectedVoice);
-      ttsService.setVoice(selectedVoice.voice_type);
+      realtimeTtsService.setVoice(selectedVoice.voice_type);
     }
   }, [selectedVoice]);
 
@@ -118,7 +118,7 @@ export default function TtsList({
     if (selectedVoice) {
       setInternalSelectedVoice(selectedVoice);
       // 更新 TTS 服务的音色
-      ttsService.setVoice(selectedVoice.voice_type);
+      realtimeTtsService.setVoice(selectedVoice.voice_type);
       if (onVoiceSelect) {
         onVoiceSelect(selectedVoice);
       }

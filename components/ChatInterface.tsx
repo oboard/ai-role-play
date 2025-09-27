@@ -212,15 +212,19 @@ const ChatInterface = (props: {
                           ).length
                         }
                       />
-                      {message.parts.filter((part) => part.type === 'source-url').map((part, i) => (
-                        <SourcesContent key={`${message.id}-${i}`}>
-                          <Source
-                            key={`${message.id}-${i}`}
-                            href={part.url}
-                            title={part.url}
-                          />
-                        </SourcesContent>
-                      ))}
+                      {message.parts.filter((part) => part.type === 'source-url').map((part, i) => {
+                        // TypeScript类型断言：已通过filter确保part是SourceUrlUIPart类型
+                        const sourcePart = part as { type: 'source-url'; url: string; title?: string };
+                        return (
+                          <SourcesContent key={`${message.id}-${i}`}>
+                            <Source
+                              key={`${message.id}-${i}`}
+                              href={sourcePart.url}
+                              title={sourcePart.title || sourcePart.url}
+                            />
+                          </SourcesContent>
+                        );
+                      })}
                     </Sources>
                   )}
                   {message.parts.map((part, i) => {

@@ -2,21 +2,24 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, User, Crown, BookOpen } from 'lucide-react';
+import { Search, User, Crown, BookOpen, Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Character } from '@/types/game';
 import { useTranslation } from '@/lib/i18n';
 import { generateCardImageUrl } from '@/lib/imageUtils';
+import { CustomCharacterStorage } from '@/lib/customCharacterStorage';
 import characterData from '@/lib/characterData.json';
 
 export default function CharacterSearch() {
   const router = useRouter();
   const { t, language } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<'all' | 'historical' | 'fictional'>('all');
+  const [selectedCategory, setSelectedCategory] = useState<'all' | 'historical' | 'fictional' | 'custom'>('all');
   const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
+  const [customCharacters, setCustomCharacters] = useState<Character[]>([]);
 
   // 从JSON文件中获取角色数据
   const getCharacterData = (id: string): Character => {
@@ -38,11 +41,34 @@ export default function CharacterSearch() {
     getCharacterData(id)
   ).filter(Boolean);
 
+  // 合并预定义角色和自定义角色
+  const ALL_CHARACTERS: Character[] = useMemo(() => {
+    return [...PREDEFINED_CHARACTERS, ...customCharacters];
+  }, [customCharacters]);
+
+  // 加载自定义角色
+  useEffect(() => {
+    const loadCustomCharacters = () => {
+      const characters = CustomCharacterStorage.getCustomCharacters();
+      setCustomCharacters(characters);
+    };
+
+    loadCustomCharacters();
+    
+    // 监听localStorage变化
+    const handleStorageChange = () => {
+      loadCustomCharacters();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   // 异步加载角色图片
   useEffect(() => {
     const loadImages = async () => {
       const urls: Record<string, string> = {};
-      for (const character of PREDEFINED_CHARACTERS) {
+      for (const character of ALL_CHARACTERS) {
         try {
           urls[character.id] = await generateCardImageUrl(character.name);
         } catch (error) {
@@ -54,17 +80,31 @@ export default function CharacterSearch() {
       setImageUrls(urls);
     };
 
-    loadImages();
-  }, []);
+    if (ALL_CHARACTERS.length > 0) {
+      loadImages();
+    }
+  }, [ALL_CHARACTERS]);
 
   const filteredCharacters = useMemo(() => {
-    return PREDEFINED_CHARACTERS.filter(character => {
+    return ALL_CHARACTERS.filter(character => {
       const matchesSearch = character.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        character.description.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = selectedCategory === 'all' || character.category === selectedCategory;
+                          character.description.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      // 判断是否为自定义角色
+      const isCustomCharacter = customCharacters.some(c => c.id === character.id);
+      
+      let matchesCategory = false;
+      if (selectedCategory === 'all') {
+        matchesCategory = true;
+      } else if (selectedCategory === 'custom') {
+        matchesCategory = isCustomCharacter;
+      } else {
+        matchesCategory = !isCustomCharacter && character.category === selectedCategory;
+      }
+      
       return matchesSearch && matchesCategory;
     });
-  }, [searchTerm, selectedCategory]);
+  }, [searchTerm, selectedCategory, ALL_CHARACTERS, customCharacters]);
 
   const getCategoryIcon = (category: Character['category']) => {
     switch (category) {
@@ -97,14 +137,23 @@ export default function CharacterSearch() {
 
       {/* 搜索和筛选 */}
       <div className="mb-6 space-y-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-          <Input
-            placeholder={t('searchPlaceholder')}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-card border-border text-foreground placeholder:text-muted-foreground"
-          />
+        <div className="flex gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
+            <Input
+              placeholder={t('searchPlaceholder')}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-card border-border text-foreground placeholder:text-muted-foreground"
+            />
+          </div>
+          <Button
+            onClick={() => router.push('/add-character')}
+            className="flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            <Plus className="w-4 h-4" />
+            {t('addCharacter')}
+          </Button>
         </div>
 
         <div className="flex gap-2">
@@ -136,6 +185,16 @@ export default function CharacterSearch() {
           >
             <BookOpen className="w-4 h-4" />
             {t('fictional')}
+          </button>
+          <button
+            onClick={() => setSelectedCategory('custom')}
+            className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${selectedCategory === 'custom'
+              ? 'bg-blue-600 text-white dark:bg-blue-700'
+              : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+              }`}
+          >
+            <User className="w-4 h-4" />
+{t('custom')}
           </button>
         </div>
       </div>
@@ -169,7 +228,7 @@ export default function CharacterSearch() {
                 </div>
               )}
               {/* 默认背景（错误时显示） */}
-              <div className="hidden absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+              <div className="hidden absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 items-center justify-center">
                 {getCategoryIcon(character.category)}
               </div>
               {/* 分类标签 */}

@@ -8,6 +8,7 @@ import ChatInterface from '@/components/ChatInterface';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import characterData from '@/lib/characterData.json';
+import { CustomCharacterStorage } from '@/lib/customCharacterStorage';
 import { useTranslation } from '@/lib/i18n';
 import { generateAvatarUrl, generateBackgroundUrl } from '@/lib/imageUtils';
 import { ttsService } from '@/lib/ttsService';
@@ -20,20 +21,29 @@ export default function ChatPage() {
   const [avatarUrl, setAvatarUrl] = useState<string>('');
   const [backgroundUrl, setBackgroundUrl] = useState<string>('');
 
-  // 从JSON文件中获取角色数据
+  // 从JSON文件或localStorage中获取角色数据
   const getCharacterData = (id: string): Character | null => {
+    // 首先尝试从预定义角色中查找
     const characterInfo = characterData.characters[id as keyof typeof characterData.characters];
-    if (!characterInfo) return null;
+    if (characterInfo) {
+      return {
+        id: characterInfo.id,
+        name: characterInfo.name[language] || characterInfo.name.en,
+        description: characterInfo.description[language] || characterInfo.description.en,
+        personality: characterInfo.personality[language] || characterInfo.personality.en,
+        background: characterInfo.background[language] || characterInfo.background.en,
+        category: characterInfo.category as 'historical' | 'fictional' | 'custom',
+        voice: characterInfo.voice
+      };
+    }
 
-    return {
-      id: characterInfo.id,
-      name: characterInfo.name[language] || characterInfo.name.en,
-      description: characterInfo.description[language] || characterInfo.description.en,
-      personality: characterInfo.personality[language] || characterInfo.personality.en,
-      background: characterInfo.background[language] || characterInfo.background.en,
-      category: characterInfo.category as 'historical' | 'fictional' | 'custom',
-      voice: characterInfo.voice
-    };
+    // 如果预定义角色中没有找到，尝试从自定义角色中查找
+    const customCharacter = CustomCharacterStorage.getCustomCharacterById(id);
+    if (customCharacter) {
+      return customCharacter;
+    }
+
+    return null;
   };
 
   const character = getCharacterData(characterId);

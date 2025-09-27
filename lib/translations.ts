@@ -20,6 +20,24 @@ export const translations = {
   characterNotFound: "Character not found",
   backToCharacterSelection: "Back to character selection",
 
+    // Add Character
+    addCharacter: "Add Character",
+    createNewCharacter: "Create New Character",
+    characterName: "Character Name",
+    characterDescription: "Description",
+    characterPersonality: "Personality",
+    characterBackground: "Background",
+    characterCategory: "Category",
+    custom: "Custom",
+    characterNamePlaceholder: "Enter character name...",
+    characterDescriptionPlaceholder: "Enter character description...",
+    characterPersonalityPlaceholder: "Describe the character's personality...",
+    characterBackgroundPlaceholder: "Enter character's background story...",
+    save: "Save",
+    characterSaved: "Character saved successfully!",
+    characterNameRequired: "Character name is required",
+    characterDescriptionRequired: "Character description is required",
+
     // Buttons and Actions
     back: "Back",
     cancel: "Cancel",
@@ -146,6 +164,24 @@ export const translations = {
     characterNotFound: "角色未找到",
     backToCharacterSelection: "返回角色选择",
     backToSelection: "返回选择",
+
+    // Add Character
+    addCharacter: "添加角色",
+    createNewCharacter: "创建新角色",
+    characterName: "角色名称",
+    characterDescription: "角色描述",
+    characterPersonality: "性格特点",
+    characterBackground: "背景故事",
+    characterCategory: "角色类别",
+    custom: "自定义",
+    characterNamePlaceholder: "请输入角色名称...",
+    characterDescriptionPlaceholder: "请输入角色描述...",
+    characterPersonalityPlaceholder: "描述角色的性格特点...",
+    characterBackgroundPlaceholder: "请输入角色的背景故事...",
+    save: "保存",
+    characterSaved: "角色保存成功！",
+    characterNameRequired: "角色名称不能为空",
+    characterDescriptionRequired: "角色描述不能为空",
 
     // Buttons and Actions
     back: "返回",

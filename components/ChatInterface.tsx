@@ -50,7 +50,7 @@ const ChatInterface = (props: {
 }) => {
   const [input, setInput] = useState('');
   const [isTtsEnabled, setIsTtsEnabled] = useState<boolean>(true);
-  const [ttsStatus, setTtsStatus] = useState({ isStreaming: false, isPlaying: false });
+  const [ttsStatus, setTtsStatus] = useState({ isStreaming: false, isPlaying: false, isPaused: false });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const lastAssistantMessageRef = useRef<string>('');
   const lastMessageCountRef = useRef<number>(0);
@@ -66,7 +66,14 @@ const ChatInterface = (props: {
     }
 
     // 设置状态变化回调
-    realtimeTtsService.setStatusChangeCallback(setTtsStatus);
+    // 设置状态变化回调，处理可能缺少isPaused字段的情况
+    realtimeTtsService.setStatusChangeCallback((status) => {
+      setTtsStatus({
+        isStreaming: status.isStreaming,
+        isPlaying: status.isPlaying,
+        isPaused: (status as any).isPaused || false // 兼容处理
+      });
+    });
   }, [props.character]);
 
   const { messages, sendMessage, status, regenerate } = useChat({
@@ -355,7 +362,7 @@ const ChatInterface = (props: {
 
                   {isTtsEnabled && (
                     <>
-                      {ttsStatus.isPlaying ? (
+                      {ttsStatus.isPlaying && !ttsStatus.isPaused ? (
                         <PromptInputButton
                           onClick={handleAudioPause}
                           variant="ghost"
@@ -371,8 +378,8 @@ const ChatInterface = (props: {
                           variant="ghost"
                           size="sm"
                           className="p-2"
-                          title="继续播放"
-                          disabled={!ttsStatus.isStreaming}
+                          title={ttsStatus.isPaused ? "继续播放" : "开始播放"}
+                          disabled={!ttsStatus.isStreaming && !ttsStatus.isPaused}
                         >
                           <PlayIcon className="size-4" />
                         </PromptInputButton>
@@ -384,7 +391,7 @@ const ChatInterface = (props: {
                         size="sm"
                         className="p-2"
                         title="停止播放"
-                        disabled={!ttsStatus.isStreaming && !ttsStatus.isPlaying}
+                        disabled={!ttsStatus.isStreaming && !ttsStatus.isPlaying && !ttsStatus.isPaused}
                       >
                         <StopCircleIcon className="size-4" />
                       </PromptInputButton>

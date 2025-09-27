@@ -15,9 +15,10 @@ class RealtimeTtsService {
   private textBuffer = '';
   private isStreaming = false;
   private isPlaying = false;
+  private isPaused = false; // 新增：暂停状态
   private audioQueue: AudioBuffer[] = [];
   private currentPlayingIndex = 0;
-  private onStatusChange?: (status: { isStreaming: boolean; isPlaying: boolean }) => void;
+  private onStatusChange?: (status: { isStreaming: boolean; isPlaying: boolean; isPaused: boolean }) => void;
   
   // 新增：顺序处理相关
   private pendingTasks: PendingAudioTask[] = [];
@@ -59,7 +60,7 @@ class RealtimeTtsService {
     this.stopCurrentAudio();
   }
 
-  setStatusChangeCallback(callback: (status: { isStreaming: boolean; isPlaying: boolean }) => void) {
+  setStatusChangeCallback(callback: (status: { isStreaming: boolean; isPlaying: boolean; isPaused: boolean }) => void) {
     this.onStatusChange = callback;
   }
 
@@ -67,7 +68,8 @@ class RealtimeTtsService {
     if (this.onStatusChange) {
       this.onStatusChange({
         isStreaming: this.isStreaming,
-        isPlaying: this.isPlaying
+        isPlaying: this.isPlaying && !this.isPaused, // 考虑暂停状态
+        isPaused: this.isPaused // 包含暂停状态
       });
     }
   }
@@ -78,6 +80,7 @@ class RealtimeTtsService {
       this.sourceNode = null;
     }
     this.isPlaying = false;
+    this.isPaused = false; // 重置暂停状态
     this.updateStatus();
   }
 
@@ -87,6 +90,7 @@ class RealtimeTtsService {
     this.isStreaming = false;
     this.audioQueue = [];
     this.currentPlayingIndex = 0;
+    this.isPaused = false; // 重置暂停状态
     this.pendingTasks = [];
     this.nextTaskId = 0;
     this.isProcessingQueue = false;
@@ -336,20 +340,42 @@ class RealtimeTtsService {
 
   // 暂停播放
   pause() {
-    this.stopCurrentAudio();
+    if (this.isPlaying && !this.isPaused) {
+      this.isPaused = true;
+      if (this.sourceNode) {
+        this.sourceNode.stop();
+        this.sourceNode = null;
+      }
+      this.updateStatus();
+    }
   }
 
   // 恢复播放
   resume() {
-    if (!this.isPlaying && this.currentPlayingIndex < this.audioQueue.length) {
+    if (this.isPaused) {
+      this.isPaused = false;
+      // 从当前位置继续播放
+      if (this.currentPlayingIndex < this.audioQueue.length) {
+        this.playNextAudio();
+      }
+      this.updateStatus();
+    } else if (!this.isPlaying && this.currentPlayingIndex < this.audioQueue.length) {
+      // 如果没有暂停但也没在播放，直接开始播放
       this.playNextAudio();
     }
   }
 
   // 停止所有播放
   stop() {
+    // 彻底停止和清空所有内容
     this.stopCurrentAudio();
+    this.isPaused = false;
     this.currentPlayingIndex = this.audioQueue.length; // 跳过所有剩余音频
+    this.audioQueue = []; // 清空音频队列
+    this.pendingTasks = []; // 清空待处理任务
+    this.isProcessingQueue = false; // 停止队列处理
+    this.textBuffer = ''; // 清空文本缓冲
+    this.updateStatus();
   }
 
   // 获取当前状态
@@ -357,7 +383,8 @@ class RealtimeTtsService {
     return {
       isEnabled: this.isEnabled,
       isStreaming: this.isStreaming,
-      isPlaying: this.isPlaying,
+      isPlaying: this.isPlaying && !this.isPaused, // 考虑暂停状态
+      isPaused: this.isPaused, // 新增暂停状态
       voiceType: this.voiceType,
       speedRatio: this.speedRatio
     };

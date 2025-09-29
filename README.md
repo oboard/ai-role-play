@@ -26,17 +26,14 @@
 ### 安装运行
 ```bash
 # 克隆项目
-git clone <repository-url>
+git clone https://github.com/oboard/ai-role-play.git
 cd ai-role-play
 
 # 安装依赖
-npm install
+bun/pnpm install
 
 # 启动开发服务器
-npm run dev
-
-# 访问应用
-open http://localhost:3000
+bun/pnpm run dev
 ```
 
 ### 环境配置
@@ -96,41 +93,6 @@ ANTHROPIC_API_KEY=your_anthropic_key
     ↓           ↓              ↓         ↓        ↓
 语音识别 → 文本转换 → 消息发送 → 流式响应 → 实时合成
 ```
-
-## 🔧 Linus式技术思考
-
-### 【代码品味评估】
-**评分**: 🟡 凑合 - 功能完整但复杂度需要控制
-
-### 【核心问题】
-1. **数据结构混乱**: 音频服务类承担了太多职责
-2. **特殊情况泛滥**: 嵌套if判断过多，缺乏统一的状态机
-3. **复杂度爆炸**: ChatInterface组件过于庞大
-
-### 【改进建议】
-```typescript
-// 当前设计问题
-class RealtimeTtsService {
-  // 混合了API调用、状态管理、音频处理
-}
-
-// 建议的简化设计
-interface AudioPlayer {
-  play(audio: ArrayBuffer): void;
-  pause(): void;
-  stop(): void;
-}
-
-interface TtsApi {
-  synthesize(text: string): Promise<ArrayBuffer>;
-}
-```
-
-### 【设计哲学】
-- **"好品味"优先**: 消除特殊情况，让代码自然流畅
-- **实用主义**: 解决真实问题，不追求理论完美
-- **简洁执念**: 每个函数只做一件事，做好一件事
-- **向后兼容**: 任何重构都不能破坏用户体验
 
 ## 🎨 AI技能系统
 
@@ -221,19 +183,8 @@ git commit -m "fix: 修复TTS播放异常"
 git commit -m "perf: 优化音频处理性能"
 ```
 
-## 📄 许可证
-
-MIT License - 详见 [LICENSE](LICENSE) 文件
-
 ## 🙏 致谢
 
-- OpenAI 提供强大的AI能力
+- 七牛云提供强大的AI能力
 - Vercel 提供优秀的开发框架
 - shadcn/ui 提供精美的UI组件
-- 所有为开源社区贡献的开发者们
-
----
-
-**"Talk is cheap. Show me the code."** - Linus Torvalds
-
-这个项目不是为了展示理论，而是为了解决真实的问题：让人们能够与AI角色进行自然、有趣的对话。代码可能不完美，但它能工作，能为用户创造价值。这就够了。

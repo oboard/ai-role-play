@@ -10,7 +10,7 @@ export interface ChatStorage {
 }
 
 /**
- * localStorage工具函数 - Linus式简洁设计
+ * localStorage工具函数
  * 
  * 核心原则：
  * 1. 一个函数只做一件事

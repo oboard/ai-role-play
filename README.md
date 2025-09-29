@@ -1,5 +1,7 @@
 # AI角色扮演聊天应用
 
+[Demo](https://airole.oboard.fun/)
+
 一个基于Next.js的智能角色扮演聊天应用，支持语音交互、实时TTS和多种AI技能。
 
 ## 分工
@@ -14,8 +16,9 @@
 3. 智能角色扮演
 4. 主体切换功能
 
-## Demo视频地址
+## Demo
 [Demo演示视频](https://obscloud.ulearning.cn/resources/web/17590705086038670.mp4)
+
 
 ## 🎯 项目特色
 
